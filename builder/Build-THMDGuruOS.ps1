@@ -1,13 +1,14 @@
 <#
 .SYNOPSIS
-    THMD-Guru OS Forge -- Windows PowerShell Build Launcher
+    THMD-Guru OS Forge -- Windows PowerShell Build & QEMU Test Launcher
     Owner: os-forge-devops
 .DESCRIPTION
-    Builds THMD-Guru Linux (Desktop, Server, ATTT) packages and ISOs from Windows
-    using Docker Desktop, WSL2, or the built-in Portable Native Builder (Git Bash + Python ISO-9660).
+    Builds THMD-Guru Linux (Desktop, Server, ATTT) packages and Hybrid Bootable ISOs from Windows
+    using Docker Desktop, WSL2, or the built-in Portable Native Builder (Git Bash + Python ISO-9660),
+    and boots them in QEMU (Software TCG emulation, no BIOS VT-x required).
 #>
 param(
-    [ValidateSet("smoke-test", "stage", "packages", "iso", "all")]
+    [ValidateSet("smoke-test", "stage", "packages", "iso", "qemu", "qemu-autotest", "all")]
     [string]$Action = "all",
 
     [ValidateSet("desktop", "server", "attt")]
@@ -24,6 +25,17 @@ try {
     Write-Host "  Action: $Action | Edition: $Edition" -ForegroundColor Yellow
     Write-Host "====================================================================" -ForegroundColor Yellow
 
+    $gitBash = "C:\Program Files\Git\bin\bash.exe"
+    $pyExe = "C:\Python314\python.exe"
+    if (-not (Test-Path $pyExe)) { $pyExe = "python" }
+
+    if ($Action -in @("qemu", "qemu-autotest")) {
+        $isoFile = "out/thmd-guru-$Edition-1.0-genesis-amd64.iso"
+        $mode = if ($Action -eq "qemu-autotest") { "autotest" } else { "gui" }
+        & $gitBash "tests/run-qemu.sh" $isoFile $mode
+        exit $LASTEXITCODE
+    }
+
     if (Get-Command docker -ErrorAction SilentlyContinue) {
         Write-Host "[OS Forge] Detected Docker Engine. Building container image thmd-guru-forge:bookworm..." -ForegroundColor Green
         docker build -t thmd-guru-forge:bookworm -f "builder/Dockerfile" .
@@ -35,10 +47,7 @@ try {
         exit $LASTEXITCODE
     }
 
-    Write-Host "[OS Forge] Running Portable Native Builder (Git Bash + Python ISO-9660)..." -ForegroundColor Green
-    $gitBash = "C:\Program Files\Git\bin\bash.exe"
-    $pyExe = "C:\Python314\python.exe"
-    if (-not (Test-Path $pyExe)) { $pyExe = "python" }
+    Write-Host "[OS Forge] Running Portable Native Builder (Git Bash + Python Hybrid ISO-9660)..." -ForegroundColor Green
 
     if ($Action -eq "smoke-test") {
         & $gitBash "tests/smoke-test.sh"

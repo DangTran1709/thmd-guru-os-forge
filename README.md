@@ -82,7 +82,14 @@ sudo make iso-server
 sudo make iso-attt
 ```
 
-### Cách 3: Khởi chạy thử file `.iso` bằng máy ảo QEMU
+### Cách 3: Khởi chạy thử file `.iso` bằng máy ảo QEMU (Hỗ trợ cả KVM & Windows TCG không cần VT-x)
+```powershell
+# Khởi chạy trực tiếp trên Windows bằng PowerShell
+.\builder\Build-THMDGuruOS.ps1 -Action qemu -Edition desktop
+.\builder\Build-THMDGuruOS.ps1 -Action qemu -Edition server
+.\builder\Build-THMDGuruOS.ps1 -Action qemu -Edition attt
+```
+Hoặc trên Linux/Git Bash:
 ```bash
 bash tests/run-qemu.sh out/thmd-guru-desktop-1.0-genesis-amd64.iso
 ```

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# THMD-Guru OS Forge — Automated Repository & Package Integrity Smoke Test
+# THMD-Guru OS Forge — Automated Repository, Package & Bootable ISO Integrity Smoke Test
 # Owner: os-forge-devops
 set -euo pipefail
 
@@ -33,6 +33,7 @@ REQUIRED_FILES=(
     "builder/Dockerfile"
     "builder/forge.sh"
     "builder/build-apt-repo.sh"
+    "builder/build-iso-portable.py"
     "packages/thmd-guru-branding/src/ThmdGuru.profile"
     "packages/thmd-guru-branding/src/ThmdGuru.colorscheme"
     "editions/server/includes.chroot/etc/cloud/cloud.cfg.d/90_thmd_guru.cfg"
@@ -54,9 +55,24 @@ while IFS= read -r -d '' sh_file; do
 done < <(find core editions packages builder tests -type f \( -name "*.sh" -o -name "*.hook.chroot" -o -name "*-plugin" -o -name "guru" \) -print0)
 echo "[PASS] All Bash scripts, hooks, and CLI plugins passed syntax verification (bash -n)."
 
-# Test `guru` CLI directly
+# Test `guru` CLI subcommands directly
 output="$("${ROOT_DIR}/packages/guru-cli/src/guru" help)"
 grep -q "THMD-Guru" <<< "${output}"
-echo "[PASS] guru CLI help command verified."
+"${ROOT_DIR}/packages/guru-cli/src/guru" info >/dev/null
+"${ROOT_DIR}/packages/guru-cli/src/guru" lab list >/dev/null
+echo "[PASS] guru CLI (help, info, lab) verified."
+
+# Verify compiled Hybrid Bootable ISOs if present in out/
+for ed in desktop server attt; do
+    iso="out/thmd-guru-${ed}-1.0-genesis-amd64.iso"
+    if [[ -f "${iso}" ]]; then
+        size="$(wc -c < "${iso}" | tr -d '[:space:]')"
+        if [[ "${size}" -lt 50000000 ]]; then
+            echo "[FAIL] ISO ${iso} is too small (${size} bytes) — expected > 50MB bootable image" >&2
+            exit 1
+        fi
+        echo "[PASS] Verified Hybrid Bootable ISO: ${iso} (${size} bytes)"
+    fi
+done
 
 echo "[THMD-Guru Smoke Test] ALL CHECKS PASSED SUCCESSFULLY!"
