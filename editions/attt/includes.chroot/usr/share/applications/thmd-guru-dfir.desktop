@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=DFIR & Forensic Toolkit (SleuthKit / YARA / Binwalk)
+Comment=Digital Forensics and Incident Response Console (THMD-Guru ATTT)
+Exec=xfce4-terminal -H -T "THMD-Guru DFIR Console" -e "bash -c 'echo \"=== THMD-Guru DFIR Toolkit: fls, mmls, binwalk, foremost, exiftool, yara, radare2 ===\"; exec bash'"
+Icon=system-search
+Terminal=false
+Categories=System;Security;X-THMD-DFIR;

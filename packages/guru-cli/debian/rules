@@ -1,0 +1,16 @@
+#!/usr/bin/make -f
+# guru-cli — debhelper (compat 13) rules.
+
+%:
+	dh $@
+
+# Pure shell package: nothing to configure/build/test upstream-style.
+override_dh_auto_build:
+	bash -n src/guru
+
+override_dh_auto_test:
+	bash tests/run.sh
+
+override_dh_fixperms:
+	dh_fixperms
+	chmod 0755 debian/guru-cli/usr/bin/guru

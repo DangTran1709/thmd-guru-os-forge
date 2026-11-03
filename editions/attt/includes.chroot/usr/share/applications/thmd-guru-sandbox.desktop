@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=THMD-Guru Firejail Sandbox Runner
+Comment=Launch isolated application sandbox with dropped capabilities
+Exec=xfce4-terminal -H -T "THMD-Guru Sandbox" -e "bash -c 'guru sandbox help; exec bash'"
+Icon=security-medium
+Terminal=false
+Categories=System;Security;X-THMD-Stealth;

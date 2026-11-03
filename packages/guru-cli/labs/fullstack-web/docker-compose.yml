@@ -1,0 +1,24 @@
+# THMD-Guru Global Tech Academy — Lab 01: Full-Stack & Microservices Stack
+version: "3.9"
+services:
+  academy-api:
+    image: python:3.11-slim
+    container_name: guru-lab-api
+    working_dir: /app
+    command: python3 -m http.server 8080
+    ports:
+      - "8080:8080"
+  academy-redis:
+    image: redis:7-alpine
+    container_name: guru-lab-redis
+    ports:
+      - "6379:6379"
+  academy-postgres:
+    image: postgres:16-alpine
+    container_name: guru-lab-postgres
+    environment:
+      POSTGRES_USER: guru
+      POSTGRES_PASSWORD: gurulabpassword
+      POSTGRES_DB: thmd_academy
+    ports:
+      - "5432:5432"

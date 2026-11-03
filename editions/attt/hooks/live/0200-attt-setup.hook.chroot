@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# THMD-Guru Linux ATTT — Hardening, AppArmor & Tactical Desktop Hook
+# Owner: security-attt-lead
+set -euo pipefail
+
+echo "[THMD-Guru ATTT Hook] Configuring AppArmor, auditd, nftables default-deny, and XFCE..."
+
+echo "attt" > /etc/thmd-guru/edition
+
+# Append legal notice reminder to /etc/motd
+if [[ -f /etc/thmd-guru/LEGAL-NOTICE.txt ]]; then
+    cat << 'EOF' >> /etc/motd
+  [!] PHIEN BAN ATTT: Chi su dung cho muc dich dao tao & kiem thu duoc uy quyen.
+      Xem chi tiet: /etc/thmd-guru/LEGAL-NOTICE.txt | Lenh: guru stealth | guru sandbox
+
+EOF
+fi
+
+# Strict inbound default-deny firewall for ATTT workstation
+cat << 'EOF' > /etc/nftables.conf
+#!/usr/sbin/nft -f
+flush ruleset
+
+table inet filter {
+    chain input {
+        type filter hook input priority 0; policy drop;
+        iif "lo" accept
+        ct state established,related accept
+        ct state invalid drop
+    }
+    chain forward {
+        type filter hook forward priority 0; policy drop;
+    }
+    chain output {
+        type filter hook output priority 0; policy accept;
+    }
+}
+EOF
+
+# Enable security daemons and display manager
+systemctl enable apparmor.service 2>/dev/null || true
+systemctl enable auditd.service 2>/dev/null || true
+systemctl enable nftables.service 2>/dev/null || true
+systemctl enable lightdm.service 2>/dev/null || true
+
+echo "[THMD-Guru ATTT Hook] Completed."

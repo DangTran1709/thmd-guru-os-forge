@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# guru plugin: sandbox — Run untrusted binaries/files inside a Firejail/Bubblewrap sandbox
+# Owner: security-attt-lead
+set -euo pipefail
+
+usage() {
+    cat << 'EOF'
+THMD-Guru Sandbox Isolation Utility (guru sandbox)
+Usage:
+  guru sandbox run <command> [args...]     Run command inside an isolated Firejail container
+  guru sandbox netless <command> [args...] Run command with zero network access (--net=none)
+  guru sandbox status                      Show active sandboxed processes
+EOF
+}
+
+cmd="${1:-help}"
+shift || true
+
+case "${cmd}" in
+    run)
+        [[ $# -eq 0 ]] && { usage; exit 1; }
+        exec firejail --private --caps.drop=all --nonewprivs --noroot "$@"
+        ;;
+    netless)
+        [[ $# -eq 0 ]] && { usage; exit 1; }
+        exec firejail --private --net=none --caps.drop=all --nonewprivs --noroot "$@"
+        ;;
+    status)
+        firejail --list
+        ;;
+    *)
+        usage
+        ;;
+esac

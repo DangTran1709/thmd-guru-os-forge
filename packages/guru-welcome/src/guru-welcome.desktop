@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=THMD-Guru Welcome Center
+Comment=THMD-Guru Global Tech Academy Onboarding & Lab Setup
+Exec=/usr/bin/guru-welcome
+Icon=thmd-guru-logo
+Terminal=false
+Categories=System;Education;Development;
+StartupNotify=true

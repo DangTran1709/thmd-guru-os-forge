@@ -1,0 +1,38 @@
+<!DOCTYPE Menu PUBLIC "-//freedesktop//DTD Menu 1.0//EN"
+ "http://www.freedesktop.org/standards/menu-spec/1.0/menu.dtd">
+<Menu>
+  <Name>Applications</Name>
+  <Menu>
+    <Name>THMD-Guru-ATTT</Name>
+    <Directory>thmd-guru-attt.directory</Directory>
+    <Menu>
+      <Name>01-Network-Diagnostics</Name>
+      <Directory>thmd-guru-net.directory</Directory>
+      <Include>
+        <Category>X-THMD-Net</Category>
+        <Filename>org.wireshark.Wireshark.desktop</Filename>
+      </Include>
+    </Menu>
+    <Menu>
+      <Name>02-BlueTeam-Defense</Name>
+      <Directory>thmd-guru-defense.directory</Directory>
+      <Include>
+        <Category>X-THMD-Defense</Category>
+      </Include>
+    </Menu>
+    <Menu>
+      <Name>03-Digital-Forensics</Name>
+      <Directory>thmd-guru-dfir.directory</Directory>
+      <Include>
+        <Category>X-THMD-DFIR</Category>
+      </Include>
+    </Menu>
+    <Menu>
+      <Name>04-Stealth-And-Sandbox</Name>
+      <Directory>thmd-guru-stealth.directory</Directory>
+      <Include>
+        <Category>X-THMD-Stealth</Category>
+      </Include>
+    </Menu>
+  </Menu>
+</Menu>

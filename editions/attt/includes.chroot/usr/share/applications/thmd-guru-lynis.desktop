@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Lynis Security & CIS Auditor
+Comment=Run defensive system hardening audit (THMD-Guru Blue Team)
+Exec=xfce4-terminal -H -T "THMD-Guru Lynis Security Audit" -e "bash -c 'sudo lynis audit system; exec bash'"
+Icon=security-high
+Terminal=false
+Categories=System;Security;X-THMD-Defense;

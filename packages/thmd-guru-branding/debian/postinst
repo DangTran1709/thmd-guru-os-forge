@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -e
+if [ "$1" = "configure" ] && command -v plymouth-set-default-theme >/dev/null 2>&1; then
+    plymouth-set-default-theme thmd-guru || true
+fi
+#DEBHELPER#
+exit 0

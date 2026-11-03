@@ -1,0 +1,18 @@
+Source: guru-cli
+Section: admin
+Priority: optional
+Maintainer: THMD-Guru OS Forge <forge@thmd-guru.academy>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.6.2
+Homepage: https://thmd-guru.academy/
+Rules-Requires-Root: no
+
+Package: guru-cli
+Architecture: all
+Depends: ${misc:Depends}, bash (>= 5), coreutils, procps, iproute2, debianutils
+Recommends: sudo, bash-completion
+Description: THMD-Guru Linux unified command-line tool
+ Provides the "guru" command used across all THMD-Guru Linux editions
+ (Desktop, Server, ATTT). Built-in subcommands: status, info, update,
+ plugins, version and help. Edition packages extend it by installing
+ executable plugins into /usr/lib/guru/commands/.

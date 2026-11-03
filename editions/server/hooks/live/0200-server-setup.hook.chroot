@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# THMD-Guru Linux Server — Enterprise Provisioning & Hardening Hook
+# Owner: server-infra-lead
+set -euo pipefail
+
+echo "[THMD-Guru Server Hook] Configuring headless server stack, firewall, Cockpit, and Podman..."
+
+echo "server" > /etc/thmd-guru/edition
+
+# Configure nftables baseline firewall (allow SSH 22/tcp and Cockpit 9090/tcp)
+cat << 'EOF' > /etc/nftables.conf
+#!/usr/sbin/nft -f
+flush ruleset
+
+table inet filter {
+    chain input {
+        type filter hook input priority 0; policy drop;
+        iif "lo" accept
+        ct state established,related accept
+        ct state invalid drop
+        ip protocol icmp accept
+        ip6 nexthdr icmpv6 accept
+        tcp dport { 22, 9090 } accept
+    }
+    chain forward {
+        type filter hook forward priority 0; policy accept;
+    }
+    chain output {
+        type filter hook output priority 0; policy accept;
+    }
+}
+EOF
+
+# Enable enterprise server services
+systemctl enable ssh.service 2>/dev/null || true
+systemctl enable fail2ban.service 2>/dev/null || true
+systemctl enable nftables.service 2>/dev/null || true
+systemctl enable cockpit.socket 2>/dev/null || true
+systemctl enable prometheus-node-exporter.service 2>/dev/null || true
+systemctl enable unattended-upgrades.service 2>/dev/null || true
+
+echo "[THMD-Guru Server Hook] Completed."

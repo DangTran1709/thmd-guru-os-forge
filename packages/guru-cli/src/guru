@@ -1,0 +1,413 @@
+#!/usr/bin/env bash
+# guru — THMD-Guru Linux unified command-line tool.
+#
+# Built-in subcommands: status, info, update, plugins, version, help.
+# Every other subcommand is dispatched to an executable plugin at
+#   ${GURU_PLUGIN_DIR:-/usr/lib/guru/commands}/<name>
+# Plugins may declare a one-line description with a comment of the form:
+#   # guru-description: Short text shown in `guru help`
+#
+# Environment exported to plugins:
+#   GURU_VERSION, GURU_EDITION, GURU_PLUGIN_DIR, GURU_COLOR (0|1)
+#
+# Copyright (c) THMD-Guru Global Tech Academy. License: GPL-3.0-or-later.
+
+set -euo pipefail
+
+GURU_VERSION="1.0.0"
+GURU_CODENAME="Genesis"
+GURU_PLUGIN_DIR="${GURU_PLUGIN_DIR:-/usr/lib/guru/commands}"
+GURU_UPDATE_HOOK_DIR="${GURU_UPDATE_HOOK_DIR:-/usr/lib/guru/update.d}"
+GURU_ETC="${GURU_ETC:-/etc/thmd-guru}"
+GURU_OS_RELEASE="${GURU_OS_RELEASE:-/etc/os-release}"
+PROG="${0##*/}"
+
+# --------------------------------------------------------------------------
+# Colours (Cyber Sapphire & Royal Gold). Disabled when not a TTY or NO_COLOR.
+# --------------------------------------------------------------------------
+init_colors() {
+    if [[ -t 1 && -z "${NO_COLOR:-}" && "${TERM:-dumb}" != "dumb" ]]; then
+        GURU_COLOR=1
+        if [[ "${COLORTERM:-}" == *truecolor* || "${COLORTERM:-}" == *24bit* ]]; then
+            C_SAPPHIRE=$'\e[38;2;11;61;145m'
+            C_GOLD=$'\e[38;2;212;175;55m'
+            C_LGOLD=$'\e[38;2;245;215;122m'
+            C_TEXT=$'\e[38;2;230;236;247m'
+        else
+            C_SAPPHIRE=$'\e[38;5;25m'
+            C_GOLD=$'\e[38;5;178m'
+            C_LGOLD=$'\e[38;5;222m'
+            C_TEXT=$'\e[38;5;255m'
+        fi
+        C_BOLD=$'\e[1m'
+        C_DIM=$'\e[2m'
+        C_RED=$'\e[38;5;203m'
+        C_GREEN=$'\e[38;5;114m'
+        C_RESET=$'\e[0m'
+    else
+        GURU_COLOR=0
+        C_SAPPHIRE='' C_GOLD='' C_LGOLD='' C_TEXT='' C_BOLD='' C_DIM=''
+        C_RED='' C_GREEN='' C_RESET=''
+    fi
+}
+
+die()  { printf '%s%s: error:%s %s\n' "$C_RED" "$PROG" "$C_RESET" "$*" >&2; exit 1; }
+warn() { printf '%s%s: warning:%s %s\n' "$C_GOLD" "$PROG" "$C_RESET" "$*" >&2; }
+ok()   { printf '%s[ OK ]%s %s\n' "$C_GREEN" "$C_RESET" "$*"; }
+fail() { printf '%s[FAIL]%s %s\n' "$C_RED" "$C_RESET" "$*"; }
+
+# --------------------------------------------------------------------------
+# System facts
+# --------------------------------------------------------------------------
+os_field() {
+    # os_field KEY -> value from os-release (unquoted), empty if absent.
+    local key="$1" line
+    [[ -r "$GURU_OS_RELEASE" ]] || return 0
+    line="$(grep -E "^${key}=" "$GURU_OS_RELEASE" | head -n1 || true)"
+    line="${line#*=}"
+    line="${line%\"}"; line="${line#\"}"
+    printf '%s' "$line"
+}
+
+edition() {
+    local e=""
+    if [[ -r "$GURU_ETC/edition" ]]; then
+        e="$(tr -d '[:space:]' < "$GURU_ETC/edition")"
+    fi
+    case "$e" in
+        desktop|server|attt) printf '%s' "$e" ;;
+        *) printf 'unknown' ;;
+    esac
+}
+
+edition_label() {
+    case "$1" in
+        desktop) printf 'Desktop (KDE Plasma)' ;;
+        server)  printf 'Server (headless)' ;;
+        attt)    printf 'ATTT / Security (XFCE)' ;;
+        *)       printf 'unknown' ;;
+    esac
+}
+
+uptime_human() {
+    local s d h m
+    s="$(cut -d. -f1 /proc/uptime 2>/dev/null || echo 0)"
+    d=$((s / 86400)); h=$((s % 86400 / 3600)); m=$((s % 3600 / 60))
+    if ((d > 0)); then printf '%dd %dh %dm' "$d" "$h" "$m"
+    elif ((h > 0)); then printf '%dh %dm' "$h" "$m"
+    else printf '%dm' "$m"; fi
+}
+
+mem_human() {
+    awk '/^MemTotal:/{t=$2} /^MemAvailable:/{a=$2}
+         END{ if (t>0) printf "%.1f / %.1f GiB (%d%%)", (t-a)/1048576, t/1048576, (t-a)*100/t }' \
+        /proc/meminfo 2>/dev/null || true
+}
+
+disk_human() {
+    df -hP / 2>/dev/null | awk 'NR==2{printf "%s / %s (%s)", $3, $2, $5}' || true
+}
+
+cpu_model() {
+    local m
+    m="$(grep -m1 -E '^model name' /proc/cpuinfo 2>/dev/null | cut -d: -f2- | sed 's/^ *//' || true)"
+    printf '%s (%s)' "${m:-unknown}" "$(nproc 2>/dev/null || echo '?')"
+}
+
+ip_addrs() {
+    if command -v ip >/dev/null 2>&1; then
+        ip -o -4 addr show scope global 2>/dev/null | awk '{print $2"="$4}' | paste -sd' ' - || true
+    fi
+}
+
+# --------------------------------------------------------------------------
+# Plugins
+# --------------------------------------------------------------------------
+valid_name() { [[ "$1" =~ ^[a-z0-9][a-z0-9_-]*$ ]]; }
+
+plugin_path() {
+    local name="$1" p
+    valid_name "$name" || return 1
+    p="$GURU_PLUGIN_DIR/$name"
+    [[ -f "$p" && -x "$p" ]] || return 1
+    printf '%s' "$p"
+}
+
+plugin_desc() {
+    local d
+    d="$(grep -m1 -E '^#[[:space:]]*guru-description:' "$1" 2>/dev/null | sed -E 's/^#[[:space:]]*guru-description:[[:space:]]*//' || true)"
+    printf '%s' "${d:-(no description)}"
+}
+
+list_plugins() {
+    local f
+    [[ -d "$GURU_PLUGIN_DIR" ]] || return 0
+    for f in "$GURU_PLUGIN_DIR"/*; do
+        [[ -f "$f" && -x "$f" ]] || continue
+        valid_name "${f##*/}" || continue
+        printf '%s\n' "${f##*/}"
+    done
+}
+
+run_plugin() {
+    local name="$1"; shift
+    local p
+    p="$(plugin_path "$name")" || {
+        printf '%s%s: unknown command:%s %s\n' "$C_RED" "$PROG" "$C_RESET" "$name" >&2
+        printf "Run '%s help' to list available commands.\n" "$PROG" >&2
+        exit 127
+    }
+    export GURU_VERSION GURU_PLUGIN_DIR GURU_COLOR
+    GURU_EDITION="$(edition)"; export GURU_EDITION
+    exec "$p" "$@"
+}
+
+# --------------------------------------------------------------------------
+# Built-in: help
+# --------------------------------------------------------------------------
+cmd_help() {
+    if [[ $# -gt 0 ]]; then
+        case "$1" in
+            status|info|update|plugins|version|help) usage_builtin "$1"; return 0 ;;
+        esac
+        local p
+        p="$(plugin_path "$1")" || die "no such command: $1"
+        exec "$p" --help
+    fi
+    cat <<EOF
+${C_GOLD}${C_BOLD}guru${C_RESET} ${GURU_VERSION} — THMD-Guru Linux command-line tool
+
+${C_BOLD}Usage:${C_RESET} $PROG <command> [args...]
+
+${C_BOLD}Built-in commands:${C_RESET}
+  ${C_LGOLD}status${C_RESET}     System health summary (resources, services, updates)
+  ${C_LGOLD}info${C_RESET}       Show THMD-Guru logo and system information
+  ${C_LGOLD}update${C_RESET}     Update the system (apt) [--check] [-y]
+  ${C_LGOLD}plugins${C_RESET}    List installed plugin commands
+  ${C_LGOLD}version${C_RESET}    Print guru version
+  ${C_LGOLD}help${C_RESET}       Show this help, or 'help <command>'
+EOF
+    local names n
+    names="$(list_plugins)"
+    if [[ -n "$names" ]]; then
+        printf '\n%sEdition commands (plugins):%s\n' "$C_BOLD" "$C_RESET"
+        while IFS= read -r n; do
+            printf '  %s%-10s%s %s\n' "$C_LGOLD" "$n" "$C_RESET" "$(plugin_desc "$GURU_PLUGIN_DIR/$n")"
+        done <<< "$names"
+    fi
+    printf '\n%sLearn Deep. Build Real. Secure Everything.%s\n' "$C_DIM" "$C_RESET"
+}
+
+usage_builtin() {
+    case "$1" in
+        status)  echo "Usage: $PROG status [--json]   Show system health summary." ;;
+        info)    echo "Usage: $PROG info [--no-logo]  Show logo and system information." ;;
+        update)  cat <<EOF
+Usage: $PROG update [options]
+  --check, -c   Only refresh indexes and list upgradable packages
+  --yes,   -y   Do not ask for confirmation
+Runs apt-get update + full-upgrade, flatpak update (if installed),
+then executables in $GURU_UPDATE_HOOK_DIR (run-parts).
+EOF
+        ;;
+        plugins) echo "Usage: $PROG plugins   List plugins in $GURU_PLUGIN_DIR." ;;
+        version) echo "Usage: $PROG version" ;;
+        help)    echo "Usage: $PROG help [command]" ;;
+    esac
+}
+
+# --------------------------------------------------------------------------
+# Built-in: version / plugins
+# --------------------------------------------------------------------------
+cmd_version() { printf 'guru %s (%s)\n' "$GURU_VERSION" "$GURU_CODENAME"; }
+
+cmd_plugins() {
+    local names n
+    names="$(list_plugins)"
+    if [[ -z "$names" ]]; then
+        echo "No plugins installed in $GURU_PLUGIN_DIR"
+        return 0
+    fi
+    while IFS= read -r n; do
+        printf '%-12s %s\n' "$n" "$(plugin_desc "$GURU_PLUGIN_DIR/$n")"
+    done <<< "$names"
+}
+
+# --------------------------------------------------------------------------
+# Built-in: info
+# --------------------------------------------------------------------------
+cmd_info() {
+    local show_logo=1
+    case "${1:-}" in
+        --no-logo) show_logo=0 ;;
+        -h|--help) usage_builtin info; return 0 ;;
+        "") ;;
+        *) die "info: unknown option: $1" ;;
+    esac
+
+    local -a logo info
+    mapfile -t logo <<'LOGO'
+ .====================.
+ ||  _____   ____    ||
+ || |_   _| / ___|   ||
+ ||   | |  | |  _    ||
+ ||   | |  | |_| |   ||
+ ||   |_|   \____|   ||
+  \\    G U R U     //
+   \\              //
+    `\\==========//`
+       `\\____//`
+LOGO
+
+    local ed name ver
+    ed="$(edition)"
+    name="$(os_field PRETTY_NAME)"; name="${name:-THMD-Guru Linux}"
+    ver="$(cat "$GURU_ETC/version" 2>/dev/null || true)"
+    info=(
+        "${C_GOLD}${C_BOLD}${USER:-$(id -un)}${C_RESET}@${C_GOLD}${C_BOLD}$(hostname 2>/dev/null || cat /etc/hostname)${C_RESET}"
+        "${C_SAPPHIRE}----------------------------${C_RESET}"
+        "${C_LGOLD}OS${C_RESET}       ${name}"
+        "${C_LGOLD}Edition${C_RESET}  $(edition_label "$ed")"
+        "${C_LGOLD}Version${C_RESET}  ${ver:-$(os_field VERSION_ID)} (base: Debian $(os_field DEBIAN_CODENAME))"
+        "${C_LGOLD}Kernel${C_RESET}   $(uname -r)"
+        "${C_LGOLD}Uptime${C_RESET}   $(uptime_human)"
+        "${C_LGOLD}CPU${C_RESET}      $(cpu_model)"
+        "${C_LGOLD}Memory${C_RESET}   $(mem_human)"
+        "${C_LGOLD}Disk /${C_RESET}   $(disk_human)"
+        ""
+        "${C_GOLD}Learn Deep. Build Real. Secure Everything.${C_RESET}"
+    )
+
+    if ((show_logo == 0)); then
+        printf '%s\n' "${info[@]}"
+        return 0
+    fi
+    local i n=$(( ${#logo[@]} > ${#info[@]} ? ${#logo[@]} : ${#info[@]} ))
+    for ((i = 0; i < n; i++)); do
+        printf '%s%-26s%s %s\n' "$C_GOLD" "${logo[i]:-}" "$C_RESET" "${info[i]:-}"
+    done
+}
+
+# --------------------------------------------------------------------------
+# Built-in: status
+# --------------------------------------------------------------------------
+cmd_status() {
+    local json=0
+    case "${1:-}" in
+        --json) json=1 ;;
+        -h|--help) usage_builtin status; return 0 ;;
+        "") ;;
+        *) die "status: unknown option: $1" ;;
+    esac
+
+    local ed load failed="?" upg="?" sysstate="unknown"
+    ed="$(edition)"
+    load="$(cut -d' ' -f1-3 /proc/loadavg 2>/dev/null || echo '?')"
+    if command -v systemctl >/dev/null 2>&1 && [[ -d /run/systemd/system ]]; then
+        sysstate="$(systemctl is-system-running 2>/dev/null || true)"
+        failed="$(systemctl list-units --state=failed --no-legend --plain 2>/dev/null | wc -l)"
+    fi
+    if command -v apt-get >/dev/null 2>&1; then
+        # Simulated upgrade from cached indexes: no network, no root needed.
+        upg="$(apt-get -s -o Debug::NoLocking=1 upgrade 2>/dev/null | grep -c '^Inst ' || true)"
+    fi
+
+    if ((json)); then
+        printf '{"edition":"%s","version":"%s","kernel":"%s","uptime_s":%s,"load":"%s","system_state":"%s","failed_units":"%s","upgradable":"%s"}\n' \
+            "$ed" "$(cat "$GURU_ETC/version" 2>/dev/null || echo unknown)" "$(uname -r)" \
+            "$(cut -d. -f1 /proc/uptime 2>/dev/null || echo 0)" "$load" "$sysstate" "$failed" "$upg"
+        return 0
+    fi
+
+    printf '%s%sTHMD-Guru Linux — system status%s  (%s)\n' "$C_GOLD" "$C_BOLD" "$C_RESET" "$(edition_label "$ed")"
+    printf '%s%s%s\n' "$C_SAPPHIRE" "-----------------------------------------------" "$C_RESET"
+    printf '  %-14s %s\n' "Host"     "$(hostname 2>/dev/null || echo '?')"
+    printf '  %-14s %s\n' "Kernel"   "$(uname -r)"
+    printf '  %-14s %s\n' "Uptime"   "$(uptime_human)"
+    printf '  %-14s %s\n' "Load"     "$load"
+    printf '  %-14s %s\n' "Memory"   "$(mem_human)"
+    printf '  %-14s %s\n' "Disk /"   "$(disk_human)"
+    printf '  %-14s %s\n' "IPv4"     "$(ip_addrs)"
+    echo
+    case "$sysstate" in
+        running) ok "systemd: running" ;;
+        unknown) warn "systemd not available (container/chroot?)" ;;
+        *)       fail "systemd: $sysstate" ;;
+    esac
+    if [[ "$failed" == "0" ]]; then ok "No failed units"
+    elif [[ "$failed" != "?" ]]; then fail "$failed failed unit(s) — see: systemctl --failed"; fi
+    if [[ "$upg" == "0" ]]; then ok "System up to date (cached indexes)"
+    elif [[ "$upg" != "?" ]]; then warn "$upg package(s) upgradable — run: $PROG update"; fi
+}
+
+# --------------------------------------------------------------------------
+# Built-in: update
+# --------------------------------------------------------------------------
+cmd_update() {
+    local check=0 yes=0
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -c|--check) check=1 ;;
+            -y|--yes)   yes=1 ;;
+            -h|--help)  usage_builtin update; return 0 ;;
+            *) die "update: unknown option: $1" ;;
+        esac
+        shift
+    done
+
+    if [[ $EUID -ne 0 ]]; then
+        command -v sudo >/dev/null 2>&1 || die "update requires root (sudo not found)"
+        local -a args=()
+        ((check)) && args+=(--check)
+        ((yes))   && args+=(--yes)
+        exec sudo --preserve-env=NO_COLOR,TERM,COLORTERM "$0" update "${args[@]}"
+    fi
+    command -v apt-get >/dev/null 2>&1 || die "apt-get not found"
+
+    printf '%s==>%s Refreshing package indexes\n' "$C_GOLD" "$C_RESET"
+    apt-get update
+    if ((check)); then
+        printf '%s==>%s Upgradable packages\n' "$C_GOLD" "$C_RESET"
+        apt list --upgradable 2>/dev/null | tail -n +2
+        return 0
+    fi
+
+    printf '%s==>%s Upgrading system\n' "$C_GOLD" "$C_RESET"
+    local -a aptopt=()
+    ((yes)) && aptopt+=(-y)
+    DEBIAN_FRONTEND="${DEBIAN_FRONTEND:-readline}" apt-get "${aptopt[@]}" full-upgrade
+    apt-get -y autoremove --purge
+
+    if command -v flatpak >/dev/null 2>&1; then
+        printf '%s==>%s Updating Flatpak apps\n' "$C_GOLD" "$C_RESET"
+        flatpak update -y --noninteractive || warn "flatpak update failed"
+    fi
+    if [[ -d "$GURU_UPDATE_HOOK_DIR" ]]; then
+        printf '%s==>%s Running edition update hooks\n' "$C_GOLD" "$C_RESET"
+        run-parts --verbose --exit-on-error "$GURU_UPDATE_HOOK_DIR" || warn "an update hook failed"
+    fi
+    if [[ -f /var/run/reboot-required ]]; then
+        warn "A reboot is required to complete the update."
+    fi
+    ok "Update complete"
+}
+
+# --------------------------------------------------------------------------
+# Main
+# --------------------------------------------------------------------------
+main() {
+    init_colors
+    local cmd="${1:-help}"
+    [[ $# -gt 0 ]] && shift
+    case "$cmd" in
+        help|-h|--help)       cmd_help "$@" ;;
+        version|-V|--version) cmd_version ;;
+        status)               cmd_status "$@" ;;
+        info)                 cmd_info "$@" ;;
+        update)               cmd_update "$@" ;;
+        plugins)              cmd_plugins ;;
+        *)                    run_plugin "$cmd" "$@" ;;
+    esac
+}
+
+main "$@"

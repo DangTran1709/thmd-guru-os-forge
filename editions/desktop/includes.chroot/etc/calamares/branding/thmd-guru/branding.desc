@@ -1,0 +1,30 @@
+---
+componentName: thmd-guru
+welcomeStyleCalamares: true
+welcomeExpandingLogo: true
+windowExpanding: normal
+windowSize: 860px,560px
+windowPlacement: center
+
+strings:
+    productName:         "THMD-Guru Linux Desktop"
+    shortProductName:    "THMD-Guru Linux"
+    version:             "1.0 (Genesis)"
+    shortVersion:        "1.0"
+    versionedName:       "THMD-Guru Linux 1.0 (Genesis)"
+    shortVersionedName:  "THMD-Guru 1.0"
+    bootloaderEntryName: "THMD-Guru Linux"
+    productUrl:          "https://thmd-guru.academy/"
+    supportUrl:          "https://thmd-guru.academy/support"
+
+images:
+    productLogo:         "/usr/share/pixmaps/thmd-guru-logo.svg"
+    productIcon:         "/usr/share/pixmaps/thmd-guru-logo.svg"
+    productWelcome:      "/usr/share/pixmaps/thmd-guru-logo.svg"
+
+slideshow:               "show.qml"
+style:
+   sidebarBackground:    "#071A3A"
+   sidebarText:          "#E6ECF7"
+   sidebarTextSelect:    "#D4AF37"
+   sidebarTextHighlight: "#0B3D91"

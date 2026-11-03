@@ -1,0 +1,13 @@
+Source: guru-sandbox
+Section: security
+Priority: optional
+Maintainer: THMD-Guru Global Tech Academy <engineering@thmd-guru.academy>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.6.2
+
+Package: guru-sandbox
+Architecture: all
+Depends: ${misc:Depends}, bash, firejail, bubblewrap
+Description: Application sandboxing plugin for THMD-Guru Linux ATTT
+ Provides `guru sandbox` to execute untrusted programs in isolated namespaces
+ with dropped capabilities and optional network disconnection.

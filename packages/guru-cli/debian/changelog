@@ -1,0 +1,8 @@
+guru-cli (1.0.0) bookworm; urgency=medium
+
+  * Initial release for THMD-Guru Linux 1.0 "Genesis".
+  * Built-ins: status, info (ASCII logo), update, plugins, version, help.
+  * Plugin dispatch from /usr/lib/guru/commands/, update hooks from
+    /usr/lib/guru/update.d/.
+
+ -- THMD-Guru OS Forge <forge@thmd-guru.academy>  Tue, 03 Nov 2026 09:00:00 +0700

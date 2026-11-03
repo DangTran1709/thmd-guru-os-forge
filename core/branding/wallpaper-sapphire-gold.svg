@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <radialGradient id="bgGlow" cx="50%" cy="45%" r="65%">
+      <stop offset="0%" stop-color="#0B3D91"/>
+      <stop offset="55%" stop-color="#071A3A"/>
+      <stop offset="100%" stop-color="#0A0F1E"/>
+    </radialGradient>
+    <linearGradient id="goldLine" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#071A3A" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#D4AF37" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#071A3A" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#bgGlow)"/>
+  <!-- Cyber Grid & Hexagonal Ring -->
+  <g stroke="#0B3D91" stroke-width="1" opacity="0.35">
+    <line x1="0" y1="270" x2="1920" y2="270"/>
+    <line x1="0" y1="540" x2="1920" y2="540"/>
+    <line x1="0" y1="810" x2="1920" y2="810"/>
+    <line x1="480" y1="0" x2="480" y2="1080"/>
+    <line x1="960" y1="0" x2="960" y2="1080"/>
+    <line x1="1440" y1="0" x2="1440" y2="1080"/>
+  </g>
+  <polygon points="960,260 1150,370 1150,590 960,700 770,590 770,370" fill="none" stroke="#D4AF37" stroke-width="4" opacity="0.8"/>
+  <polygon points="960,290 1124,385 1124,575 960,670 796,575 796,385" fill="#071A3A" fill-opacity="0.65" stroke="#F5D77A" stroke-width="1.5" stroke-dasharray="10,6"/>
+  <text x="960" y="475" font-family="monospace" font-size="54" font-weight="bold" fill="#F5D77A" text-anchor="middle" letter-spacing="6">THMD-GURU</text>
+  <text x="960" y="525" font-family="sans-serif" font-size="22" fill="#E6ECF7" text-anchor="middle" letter-spacing="8">GLOBAL TECH ACADEMY</text>
+  <rect x="460" y="750" width="1000" height="2" fill="url(#goldLine)"/>
+  <text x="960" y="795" font-family="monospace" font-size="18" fill="#D4AF37" text-anchor="middle" letter-spacing="3">LEARN DEEP  •  BUILD REAL  •  SECURE EVERYTHING</text>
+</svg>

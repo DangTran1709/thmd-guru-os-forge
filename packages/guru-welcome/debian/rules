@@ -1,0 +1,9 @@
+#!/usr/bin/make -f
+%:
+	dh $@
+
+override_dh_auto_install:
+	install -D -m 0755 src/guru-welcome debian/guru-welcome/usr/bin/guru-welcome
+	install -D -m 0755 src/welcome-plugin debian/guru-welcome/usr/lib/guru/commands/welcome
+	install -D -m 0644 src/guru-welcome.desktop debian/guru-welcome/usr/share/applications/guru-welcome.desktop
+	install -D -m 0644 src/guru-welcome.desktop debian/guru-welcome/etc/xdg/autostart/guru-welcome.desktop

@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# THMD-Guru Linux Desktop — KDE Plasma, ZRAM & Calamares Setup Hook
+# Owner: desktop-ux-lead
+set -euo pipefail
+
+echo "[THMD-Guru Desktop Hook] Configuring KDE Plasma, SDDM, ZRAM, and Calamares..."
+
+echo "desktop" > /etc/thmd-guru/edition
+
+# Configure ZRAM (50% RAM with zstd compression)
+if [[ -f /etc/default/zramswap ]]; then
+    sed -i 's/^#*ALGO=.*/ALGO=zstd/' /etc/default/zramswap
+    sed -i 's/^#*PERCENT=.*/PERCENT=50/' /etc/default/zramswap
+fi
+
+# Set KDE Plasma global default color scheme to ThmdGuruSapphire
+mkdir -p /etc/xdg
+cat << 'EOF' > /etc/xdg/kdeglobals
+[General]
+ColorScheme=ThmdGuruSapphire
+
+[KDE]
+LookAndFeelPackage=org.kde.breezedark.desktop
+SingleClick=false
+EOF
+
+# Set Calamares to use thmd-guru branding if settings.conf exists
+if [[ -f /etc/calamares/settings.conf ]]; then
+    sed -i 's/^branding:.*/branding: thmd-guru/' /etc/calamares/settings.conf || true
+fi
+
+# Enable SDDM and Docker
+systemctl enable sddm.service 2>/dev/null || true
+systemctl enable docker.service 2>/dev/null || true
+
+echo "[THMD-Guru Desktop Hook] Done."

@@ -1,0 +1,10 @@
+# THMD-Guru OS Forge — Git Ignore
+build/
+out/
+*.iso
+*.iso.sha256
+*.deb
+*.buildinfo
+*.changes
+packages/thmd-guru-branding/assets/
+packages/thmd-guru-branding/plymouth/

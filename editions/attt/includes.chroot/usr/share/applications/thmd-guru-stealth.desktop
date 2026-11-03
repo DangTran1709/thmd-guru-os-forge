@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=THMD-Guru Stealth Mode Toggle
+Comment=Toggle MAC randomization and ICMP stealth lockdown
+Exec=xfce4-terminal -H -T "THMD-Guru Stealth Mode" -e "bash -c 'guru stealth status; echo; echo \"Chay: sudo guru stealth on | off\"; exec bash'"
+Icon=changes-prevent
+Terminal=false
+Categories=System;Security;X-THMD-Stealth;

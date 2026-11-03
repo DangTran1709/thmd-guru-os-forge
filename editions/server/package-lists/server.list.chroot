@@ -1,0 +1,83 @@
+# THMD-Guru Linux Server — package set (Debian 12 bookworm, main only)
+# Owner: server-infra-lead
+
+## Remote access & management
+openssh-server
+ssh-import-id
+sudo
+cockpit
+cockpit-podman
+cockpit-storaged
+cockpit-packagekit
+
+## Cloud / provisioning
+cloud-init
+cloud-guest-utils
+cloud-initramfs-growroot
+qemu-guest-agent
+
+## Firewall & intrusion prevention
+nftables
+ufw
+fail2ban
+python3-systemd
+
+## Containers (rootless-ready Podman stack)
+podman
+buildah
+skopeo
+crun
+uidmap
+slirp4netns
+fuse-overlayfs
+containernetworking-plugins
+podman-compose
+
+## Storage
+lvm2
+thin-provisioning-tools
+btrfs-progs
+xfsprogs
+mdadm
+cryptsetup
+parted
+gdisk
+smartmontools
+nvme-cli
+
+## Observability
+prometheus-node-exporter
+prometheus-node-exporter-collectors
+sysstat
+htop
+iotop
+auditd
+
+## Network tooling / eBPF
+iproute2
+ethtool
+tcpdump
+bpftool
+bpfcc-tools
+dnsutils
+curl
+wget
+ca-certificates
+
+## Base hardening & maintenance
+apparmor
+apparmor-utils
+chrony
+unattended-upgrades
+apt-listchanges
+needrestart
+irqbalance
+logrotate
+
+## Admin quality of life
+tmux
+vim
+bash-completion
+jq
+rsync
+less

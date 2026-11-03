@@ -1,0 +1,6 @@
+#!/usr/bin/make -f
+%:
+	dh $@
+
+override_dh_auto_install:
+	install -D -m 0755 src/console-plugin debian/guru-server-console/usr/lib/guru/commands/console

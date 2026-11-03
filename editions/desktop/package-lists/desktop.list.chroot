@@ -1,0 +1,65 @@
+# THMD-Guru Linux Desktop — KDE Plasma & Academy Developer Workstation Packages
+# Owner: desktop-ux-lead (Debian 12 bookworm)
+
+# KDE Plasma Desktop & Wayland/X11 Display Stack
+kde-plasma-desktop
+plasma-nm
+plasma-pa
+plasma-workspace-wayland
+sddm
+sddm-theme-breeze
+konsole
+dolphin
+kate
+ark
+spectacle
+okular
+gwenview
+xorg
+xwayland
+
+# Audio & Multimedia (PipeWire)
+pipewire
+pipewire-pulse
+pipewire-alsa
+wireplumber
+alsa-utils
+
+# Graphical OS Installer (Calamares)
+calamares
+calamares-settings-debian
+partitionmanager
+
+# Browsers, Fonts & Productivity
+firefox-esr
+fonts-noto-core
+fonts-noto-color-emoji
+fonts-firacode
+fonts-jetbrains-mono
+ibus
+ibus-unikey
+
+# Academy Developer & Engineering Toolchain
+build-essential
+clang
+cmake
+pkg-config
+gdb
+git
+git-lfs
+python3
+python3-pip
+python3-venv
+python3-gi
+gir1.2-gtk-3.0
+nodejs
+npm
+golang-go
+rustc
+cargo
+default-jdk
+sqlite3
+docker.io
+docker-compose
+zram-tools
+flatpak

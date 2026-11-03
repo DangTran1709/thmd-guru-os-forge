@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# guru plugin: welcome -> launches THMD-Guru Welcome Center
+set -euo pipefail
+exec /usr/bin/guru-welcome "$@"

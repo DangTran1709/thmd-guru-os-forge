@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <linearGradient id="sapphireGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0B3D91"/>
+      <stop offset="100%" stop-color="#071A3A"/>
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F5D77A"/>
+      <stop offset="100%" stop-color="#D4AF37"/>
+    </linearGradient>
+  </defs>
+  <!-- Hexagonal Shield Base -->
+  <polygon points="128,12 232,72 232,184 128,244 24,184 24,72" fill="url(#sapphireGrad)" stroke="url(#goldGrad)" stroke-width="6"/>
+  <polygon points="128,28 216,80 216,176 128,228 40,176 40,80" fill="none" stroke="#D4AF37" stroke-width="2" stroke-dasharray="8,4"/>
+  <!-- Stylized T-G Monogram & Circuit Nodes -->
+  <path d="M72,88 H184 M128,88 V180" stroke="url(#goldGrad)" stroke-width="14" stroke-linecap="round"/>
+  <path d="M96,136 H160 V168 H96 Z" fill="none" stroke="#E6ECF7" stroke-width="6" stroke-linejoin="round"/>
+  <circle cx="72" cy="88" r="8" fill="#F5D77A"/>
+  <circle cx="184" cy="88" r="8" fill="#F5D77A"/>
+  <circle cx="128" cy="180" r="8" fill="#F5D77A"/>
+  <text x="128" y="212" font-family="monospace" font-size="15" font-weight="bold" fill="#F5D77A" text-anchor="middle">THMD-GURU</text>
+</svg>

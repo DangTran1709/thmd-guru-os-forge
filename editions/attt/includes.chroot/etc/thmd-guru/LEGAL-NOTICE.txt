@@ -1,0 +1,16 @@
+================================================================================
+   THMD-GURU LINUX ATTT — THÔNG BÁO PHÁP LÝ & ĐẠO ĐỨC AN TOÀN THÔNG TIN
+   THMD-Guru Global Tech Academy — Learn Deep. Build Real. Secure Everything.
+================================================================================
+
+1. MỤC ĐÍCH SỬ DỤNG:
+   Phiên bản THMD-Guru Linux ATTT được thiết kế và đóng gói độc quyền cho mục đích:
+   - Đào tạo, giảng dạy và thực hành trong phòng Lab của THMD-Guru Global Tech Academy.
+   - Kiểm toán bảo mật, phòng thủ hệ thống (Blue Team / SOC), điều tra số (DFIR) và
+     đánh giá an toàn thông tin hợp pháp khi có văn bản ủy quyền rõ ràng.
+
+2. TRÁCH NHIỆM PHÁP LÝ:
+   Người sử dụng hoàn toàn chịu trách nhiệm tuân thủ Luật An ninh mạng và pháp luật
+   hiện hành. Nghiêm cấm sử dụng các công cụ chẩn đoán mạng trên các hệ thống không
+   thuộc quyền sở hữu hoặc chưa được cấp phép.
+================================================================================

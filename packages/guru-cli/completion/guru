@@ -1,0 +1,13 @@
+# bash completion for guru(1) — THMD-Guru Linux CLI
+_guru_completions() {
+    local cur prev cmds
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+    cmds="info status version edition doctor harden lab update list-commands help welcome console sandbox stealth"
+    if [[ ${COMP_CWORD} -eq 1 ]]; then
+        COMPREPLY=( $(compgen -W "${cmds}" -- "${cur}") )
+        return 0
+    fi
+}
+complete -F _guru_completions guru

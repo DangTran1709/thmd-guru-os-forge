@@ -1,0 +1,14 @@
+Source: thmd-guru-branding
+Section: misc
+Priority: optional
+Maintainer: THMD-Guru Global Tech Academy <engineering@thmd-guru.academy>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.6.2
+Homepage: https://thmd-guru.academy
+
+Package: thmd-guru-branding
+Architecture: all
+Depends: ${misc:Depends}, plymouth
+Description: Official brand assets and themes for THMD-Guru Linux
+ Installs the Cyber Sapphire & Royal Gold visual identity for THMD-Guru Linux,
+ including SVG logos, wallpapers, Plymouth boot splash, and KDE color scheme.

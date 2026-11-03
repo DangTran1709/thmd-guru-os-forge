@@ -1,0 +1,8 @@
+src/ThmdGuruSapphire.colors usr/share/color-schemes/
+src/ThmdGuru.profile usr/share/konsole/
+src/ThmdGuru.colorscheme usr/share/konsole/
+src/sddm-thmd-guru.conf etc/sddm.conf.d/
+src/theme.conf.user usr/share/sddm/themes/breeze/
+assets/thmd-guru-logo.svg usr/share/pixmaps/
+assets/wallpaper-sapphire-gold.svg usr/share/backgrounds/thmd-guru/
+plymouth/thmd-guru/* usr/share/plymouth/themes/thmd-guru/

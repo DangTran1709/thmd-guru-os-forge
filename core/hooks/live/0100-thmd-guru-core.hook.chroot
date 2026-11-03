@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+# THMD-Guru Linux — Core System Configuration Hook
+# Owner: chief-os-architect
+set -euo pipefail
+
+echo "[THMD-Guru Core Hook] Configuring locales, timezone, shell prompt, and edition sysctl..."
+
+# 1. Ensure /etc/thmd-guru metadata directory exists
+mkdir -p /etc/thmd-guru
+if [[ ! -f /etc/thmd-guru/edition ]]; then
+    echo "desktop" > /etc/thmd-guru/edition
+fi
+EDITION="$(tr -d '[:space:]' < /etc/thmd-guru/edition)"
+
+# 2. Configure Locales (en_US.UTF-8 & vi_VN.UTF-8) and Timezone (Asia/Ho_Chi_Minh)
+if [[ -f /etc/locale.gen ]]; then
+    sed -i 's/^# *\(en_US.UTF-8 UTF-8\)/\1/' /etc/locale.gen
+    sed -i 's/^# *\(vi_VN UTF-8\)/\1/' /etc/locale.gen
+    locale-gen || true
+fi
+update-locale LANG=en_US.UTF-8 LC_TIME=vi_VN.UTF-8 || true
+ln -sf /usr/share/zoneinfo/Asia/Ho_Chi_Minh /etc/localtime
+echo "Asia/Ho_Chi_Minh" > /etc/timezone
+
+# 3. Install Edition-Specific Kernel Sysctl Profile
+if [[ -f "/usr/share/thmd-guru/sysctl/91-${EDITION}.conf" ]]; then
+    cp -f "/usr/share/thmd-guru/sysctl/91-${EDITION}.conf" "/etc/sysctl.d/91-thmd-guru-${EDITION}.conf"
+    echo "[THMD-Guru Core Hook] Installed sysctl profile for edition: ${EDITION}"
+fi
+
+# 4. Configure THMD-Guru Global Tech Academy Shell Prompt (Bash & Zsh)
+cat << 'EOF' > /etc/profile.d/thmd-guru-prompt.sh
+# THMD-Guru Global Tech Academy — Cyber Sapphire & Royal Gold Prompt
+export EDITOR=nano
+export PAGER=less
+if [ -n "${BASH_VERSION:-}" ]; then
+    THMD_ED="$(cat /etc/thmd-guru/edition 2>/dev/null || echo 'os')"
+    if [ "$(id -u)" -eq 0 ]; then
+        PS1='\[\033[1;33m\][THMD-Guru:\[\033[1;31m\]${THMD_ED^^}-ROOT\[\033[1;33m\]]\[\033[0m\] \[\033[1;34m\]\u@\h\[\033[0m\]:\[\033[1;36m\]\w\[\033[0m\]\# '
+    else
+        PS1='\[\033[1;33m\][THMD-Guru:\[\033[1;36m\]${THMD_ED}\[\033[1;33m\]]\[\033[0m\] \[\033[1;34m\]\u@\h\[\033[0m\]:\[\033[1;36m\]\w\[\033[0m\]\$ '
+    fi
+fi
+alias ll='ls -lah --color=auto'
+alias gs='guru status'
+alias gi='guru info'
+EOF
+chmod 0644 /etc/profile.d/thmd-guru-prompt.sh
+
+if [[ -d /etc/zsh ]]; then
+    cat << 'EOF' >> /etc/zsh/zshrc
+
+# THMD-Guru Global Tech Academy Zsh Configuration
+THMD_ED="$(cat /etc/thmd-guru/edition 2>/dev/null || echo 'os')"
+PROMPT='%F{yellow}[THMD-Guru:%F{cyan}'"${THMD_ED}"'%F{yellow}]%f %F{blue}%n@%m%f:%F{cyan}%~%f%# '
+alias ll='ls -lah --color=auto'
+alias gs='guru status'
+alias gi='guru info'
+[[ -f /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]] && source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+[[ -f /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]] && source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+EOF
+fi
+
+# 5. Enable core services
+systemctl enable NetworkManager.service 2>/dev/null || true
+systemctl enable nftables.service 2>/dev/null || true
+
+echo "[THMD-Guru Core Hook] Completed successfully."

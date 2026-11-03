@@ -1,0 +1,39 @@
+.TH GURU 1 "November 2026" "THMD-Guru Linux 1.0" "THMD-Guru Global Tech Academy"
+.SH NAME
+guru \- unified system, security, and academy lab CLI for THMD-Guru Linux
+.SH SYNOPSIS
+.B guru
+.I command
+.RI [ arguments... ]
+.SH DESCRIPTION
+.B guru
+is the core command-line management and academy utility for THMD-Guru Linux
+(Desktop, Server, and ATTT editions). It supports built-in system diagnostics,
+CIS-inspired hardening checks, lab environment management, and extensible
+edition plugins under
+.IR /usr/lib/guru/commands/ .
+.SH COMMANDS
+.TP
+.B info
+Display system summary with the THMD-Guru Global Tech Academy crest.
+.TP
+.B status
+Check service health, firewall status, and security posture.
+.TP
+.B harden
+Inspect or apply baseline kernel and userland hardening checks.
+.TP
+.B lab
+Manage THMD-Guru Global Tech Academy training lab environments.
+.TP
+.B welcome
+Launch the THMD-Guru Welcome Center (Desktop edition).
+.TP
+.B console
+Display enterprise server endpoints and telemetry (Server edition).
+.TP
+.B sandbox
+Run commands inside an isolated Firejail sandbox (ATTT edition).
+.TP
+.B stealth
+Toggle MAC randomization and network stealth mode (ATTT edition).

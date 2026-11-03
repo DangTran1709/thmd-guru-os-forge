@@ -1,0 +1,96 @@
+#!/usr/bin/env python3
+"""
+THMD-Guru Welcome Center — Global Tech Academy Onboarding & Lab Installer
+Supports both GTK3 GUI (when DISPLAY/WAYLAND_DISPLAY is active) and Terminal CLI mode.
+Owner: desktop-ux-lead
+"""
+import os
+import subprocess
+import sys
+
+TRACKS = [
+    ("1. Full-Stack & Cloud Engineering", "Cài đặt VS Code, Docker, Node.js, Go, Rust, Python venv"),
+    ("2. AI & LLM Engineering Lab", "Cài đặt Ollama Local LLM Runtime & Python Data Science Stack"),
+    ("3. Cybersecurity & ATTT Range", "Khởi tạo môi trường kiểm thử bảo mật hợp pháp & Hardening"),
+]
+
+def run_cli():
+    print("\033[1;33m====================================================================\033[0m")
+    print("\033[1;36m   THMD-GURU WELCOME CENTER — GLOBAL TECH ACADEMY (v1.0 Genesis)   \033[0m")
+    print("\033[1;33m   Slogan: Learn Deep. Build Real. Secure Everything.              \033[0m")
+    print("\033[1;33m====================================================================\033[0m")
+    print("\nLộ trình học tập & Công cụ cài đặt nhanh (1-Click Academy Provisioning):")
+    for title, desc in TRACKS:
+        print(f"  \033[1;33m{title}\033[0m\n    -> {desc}")
+    print("\nLệnh cài đặt nhanh:")
+    print("  guru welcome --install-vscode   : Cài đặt Visual Studio Code chính thức")
+    print("  guru welcome --install-ollama   : Cài đặt Ollama Local AI Runtime")
+    print("  guru status                     : Kiểm tra trạng thái hệ thống THMD-Guru")
+
+def install_vscode():
+    cmd = (
+        "curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/microsoft-archive-keyring.gpg && "
+        "echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/repos/code stable main' > /etc/apt/sources.list.d/vscode.list && "
+        "apt-get update && apt-get install -y code"
+    )
+    subprocess.run(["pkexec", "bash", "-c", cmd], check=False)
+
+def install_ollama():
+    subprocess.run(["bash", "-c", "curl -fsSL https://ollama.com/install.sh | sh"], check=False)
+
+def run_gui():
+    import gi
+    gi.require_version("Gtk", "3.0")
+    from gi.repository import Gtk
+
+    win = Gtk.Window(title="THMD-Guru Global Tech Academy — Welcome Center")
+    win.set_default_size(680, 440)
+    win.set_border_width(18)
+    win.connect("destroy", Gtk.main_quit)
+
+    vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+    win.add(vbox)
+
+    header = Gtk.Label()
+    header.set_markup(
+        "<span size='x-large' weight='bold' foreground='#D4AF37'>THMD-Guru Linux 1.0 (Genesis)</span>\n"
+        "<span foreground='#E6ECF7'>THMD-Guru Global Tech Academy — Learn Deep. Build Real. Secure Everything.</span>"
+    )
+    vbox.pack_start(header, False, False, 6)
+
+    for title, desc in TRACKS:
+        frame = Gtk.Frame(label=title)
+        lbl = Gtk.Label(label=desc, xalign=0.05)
+        lbl.set_margin_top(8)
+        lbl.set_margin_bottom(8)
+        frame.add(lbl)
+        vbox.pack_start(frame, False, False, 4)
+
+    btn_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+    btn_vscode = Gtk.Button(label="Cài đặt VS Code")
+    btn_vscode.connect("clicked", lambda _: install_vscode())
+    btn_ollama = Gtk.Button(label="Cài đặt Ollama AI")
+    btn_ollama.connect("clicked", lambda _: install_ollama())
+    btn_close = Gtk.Button(label="Đóng")
+    btn_close.connect("clicked", Gtk.main_quit)
+
+    btn_box.pack_start(btn_vscode, True, True, 0)
+    btn_box.pack_start(btn_ollama, True, True, 0)
+    btn_box.pack_start(btn_close, True, True, 0)
+    vbox.pack_end(btn_box, False, False, 6)
+
+    win.show_all()
+    Gtk.main()
+
+if __name__ == "__main__":
+    if "--install-vscode" in sys.argv:
+        install_vscode()
+    elif "--install-ollama" in sys.argv:
+        install_ollama()
+    elif "--cli" in sys.argv or (not os.environ.get("DISPLAY") and not os.environ.get("WAYLAND_DISPLAY")):
+        run_cli()
+    else:
+        try:
+            run_gui()
+        except Exception:
+            run_cli()

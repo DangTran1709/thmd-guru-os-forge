@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Nmap & Network Diagnostics
+Comment=Authorized network discovery and port diagnostics (THMD-Guru ATTT)
+Exec=xfce4-terminal -H -T "THMD-Guru Network Diagnostics" -e "bash -c 'nmap --version; echo; echo \"Go lenh: nmap -sV <target-duoc-cap-phep>\"; exec bash'"
+Icon=network-workgroup
+Terminal=false
+Categories=System;Security;X-THMD-Net;

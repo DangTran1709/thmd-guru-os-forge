@@ -1,0 +1,57 @@
+name: THMD-Guru OS Forge — Automated ISO & Package CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      edition:
+        description: "Edition to build (desktop | server | attt | all)"
+        required: false
+        default: "all"
+
+jobs:
+  smoke-and-package-test:
+    name: Smoke Test & Debian Package Build
+    runs-on: ubuntu-latest
+    container:
+      image: debian:bookworm
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Packaging & Validation Tools
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends debhelper dpkg-dev build-essential fakeroot shellcheck ca-certificates
+      - name: Run Smoke Test Suite
+        run: bash tests/smoke-test.sh
+      - name: Build All 5 Native THMD-Guru .deb Packages
+        run: bash builder/forge.sh packages
+      - name: Upload Built .deb Packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: thmd-guru-debs
+          path: build/debs/*.deb
+
+  build-iso:
+    name: Build Bootable ISO (${{ matrix.edition }})
+    needs: smoke-and-package-test
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        edition: [desktop, server, attt]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker Forge Container
+        run: docker build -t thmd-guru-forge:bookworm -f builder/Dockerfile .
+      - name: Build ISO for ${{ matrix.edition }}
+        run: docker run --rm --privileged -v "$PWD:/workspace" thmd-guru-forge:bookworm iso ${{ matrix.edition }}
+      - name: Upload ISO Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: thmd-guru-${{ matrix.edition }}-iso
+          path: |
+            out/*.iso
+            out/*.sha256

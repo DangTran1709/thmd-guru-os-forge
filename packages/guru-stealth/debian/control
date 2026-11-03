@@ -1,0 +1,13 @@
+Source: guru-stealth
+Section: security
+Priority: optional
+Maintainer: THMD-Guru Global Tech Academy <engineering@thmd-guru.academy>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.6.2
+
+Package: guru-stealth
+Architecture: all
+Depends: ${misc:Depends}, bash, network-manager, nftables
+Description: Network privacy and stealth lockdown plugin for THMD-Guru Linux ATTT
+ Provides `guru stealth [on|off|status]` to enable MAC address randomization,
+ ICMP echo suppression, and strict firewall lockdown.

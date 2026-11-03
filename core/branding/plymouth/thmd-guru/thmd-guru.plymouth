@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=THMD-Guru Global Tech Academy
+Description=Cyber Sapphire and Royal Gold boot splash for THMD-Guru Linux
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/thmd-guru
+ScriptFile=/usr/share/plymouth/themes/thmd-guru/thmd-guru.script

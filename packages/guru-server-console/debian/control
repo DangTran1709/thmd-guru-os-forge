@@ -1,0 +1,13 @@
+Source: guru-server-console
+Section: admin
+Priority: optional
+Maintainer: THMD-Guru Global Tech Academy <engineering@thmd-guru.academy>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.6.2
+
+Package: guru-server-console
+Architecture: all
+Depends: ${misc:Depends}, bash
+Description: Server operations console plugin for THMD-Guru Linux Server
+ Provides the `guru console` subcommand displaying Cockpit URL, Prometheus
+ metrics endpoint, SSH/Firewall status, and container runtime health.

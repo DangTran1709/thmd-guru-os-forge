@@ -1,0 +1,9 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: guru-stealth
+Source: https://thmd-guru.academy
+
+Files: *
+Copyright: 2026 THMD-Guru Global Tech Academy <engineering@thmd-guru.academy>
+License: GPL-3.0+
+ On Debian systems, the complete text of the GNU General Public
+ License version 3 can be found in "/usr/share/common-licenses/GPL-3".

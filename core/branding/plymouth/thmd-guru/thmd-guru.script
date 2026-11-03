@@ -1,0 +1,24 @@
+// THMD-Guru Global Tech Academy — Plymouth Boot Script
+// Palette: Deep Navy (#071A3A) & Royal Gold (#D4AF37)
+
+Window.SetBackgroundTopColor(0.043, 0.239, 0.569);     // #0B3D91
+Window.SetBackgroundBottomColor(0.027, 0.102, 0.227);  // #071A3A
+
+title_image = Image.Text("THMD-GURU LINUX 1.0 (GENESIS)", 0.96, 0.84, 0.48, 1, "Sans Bold 22");
+subtitle_image = Image.Text("THMD-Guru Global Tech Academy — Learn Deep. Build Real. Secure Everything.", 0.90, 0.92, 0.97, 1, "Sans 12");
+
+title_sprite = Sprite(title_image);
+title_sprite.SetX(Window.GetWidth() / 2 - title_image.GetWidth() / 2);
+title_sprite.SetY(Window.GetHeight() * 0.42);
+
+subtitle_sprite = Sprite(subtitle_image);
+subtitle_sprite.SetX(Window.GetWidth() / 2 - subtitle_image.GetWidth() / 2);
+subtitle_sprite.SetY(Window.GetHeight() * 0.50);
+
+fun message_callback(text) {
+    msg_img = Image.Text(text, 0.83, 0.68, 0.21, 1, "Monospace 11");
+    msg_sprite = Sprite(msg_img);
+    msg_sprite.SetX(Window.GetWidth() / 2 - msg_img.GetWidth() / 2);
+    msg_sprite.SetY(Window.GetHeight() * 0.78);
+}
+Plymouth.SetMessageFunction(message_callback);

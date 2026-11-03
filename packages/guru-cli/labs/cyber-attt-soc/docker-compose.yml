@@ -1,0 +1,12 @@
+# THMD-Guru Global Tech Academy — Lab 03: Cyber Defense, SOC & Log Analysis
+version: "3.9"
+services:
+  syslog-collector:
+    image: alpine:3.19
+    container_name: guru-lab-soc-collector
+    command: sh -c "echo '[THMD-Guru SOC Lab] Listening for audit events...' && tail -f /dev/null"
+  dvwa-training-target:
+    image: vulnerables/web-dvwa:latest
+    container_name: guru-lab-web-audit
+    ports:
+      - "127.0.0.1:8081:80"

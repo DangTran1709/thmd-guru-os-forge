@@ -1,0 +1,31 @@
+# THMD-Guru Global Tech Academy — GRUB2 Bootloader Theme
+# Palette: Cyber Sapphire (#0B3D91), Deep Navy (#071A3A), Royal Gold (#D4AF37)
+# Owner: chief-os-architect
+
+title-text: "THMD-Guru Linux 1.0 (Genesis) — THMD-Guru Global Tech Academy"
+title-color: "#D4AF37"
+desktop-color: "#071A3A"
+message-color: "#E6ECF7"
+message-bg-color: "#0B3D91"
+terminal-box: "terminal_box_*.png"
+
++ boot_menu {
+  left = 12%
+  top = 24%
+  width = 76%
+  height = 52%
+  item_color = "#E6ECF7"
+  selected_item_color = "#F5D77A"
+  item_height = 32
+  item_padding = 8
+  item_spacing = 6
+}
+
++ label {
+  top = 84%
+  left = 12%
+  width = 76%
+  align = "center"
+  text = "Learn Deep. Build Real. Secure Everything. | [Enter] Boot  [E] Edit  [C] Command Line"
+  color = "#D4AF37"
+}
