@@ -1,0 +1,81 @@
+version: "3.9"
+# THMD-Guru Linux 1.0 (Genesis) — Interdisciplinary NCKH Cyber-AI Research Testbed
+# Topic 1: AI + Hybrid RAG in Verifying & Prioritizing OWASP ZAP Web Security Alerts
+# Topic 2: AI in Detecting & Assessing Web Vulnerabilities per OWASP Top 10
+# Architecture: 3 Isolated Subnets (Red Scanner, DMZ Web Target, AI-RAG SOC)
+
+services:
+  # [Device 1 - Red Zone] OWASP ZAP Headless DAST Scanner
+  zap-scanner:
+    image: ghcr.io/zaproxy/zaproxy:stable
+    container_name: thmd-guru-vm1-zap-scanner
+    hostname: zap-scanner
+    command: zap.sh -daemon -host 0.0.0.0 -port 8090 -config api.disablekey=true -config api.addrs.addr.name=.* -config api.addrs.addr.regex=true
+    ports:
+      - "8090:8090"
+    networks:
+      net_red_scanner:
+        ipv4_address: 172.28.10.10
+
+  # [Device 2 - Edge Gateway] Multi-Homed Reverse Proxy, WAF & HTTP Telemetry Sensor
+  edge-waf-gateway:
+    image: nginx:stable-alpine
+    container_name: thmd-guru-vm2-edge-waf
+    hostname: edge-waf-gateway
+    networks:
+      net_red_scanner:
+        ipv4_address: 172.28.10.254
+      net_dmz_target:
+        ipv4_address: 172.28.20.254
+      net_ai_soc:
+        ipv4_address: 172.28.30.254
+
+  # [Device 3 - DMZ Zone] OWASP Juice Shop (OWASP Top 10 Ground-Truth Target)
+  juice-shop:
+    image: bkimminich/juice-shop:latest
+    container_name: thmd-guru-vm3-juice-shop
+    hostname: juice-shop
+    ports:
+      - "3000:3000"
+    networks:
+      net_dmz_target:
+        ipv4_address: 172.28.20.10
+
+  # [Device 4 - AI-SOC Zone] Qdrant Vector Database (OWASP/CWE/CVSS/WSTG Knowledge Base)
+  qdrant-vectordb:
+    image: qdrant/qdrant:latest
+    container_name: thmd-guru-vm4-qdrant
+    hostname: qdrant-vectordb
+    ports:
+      - "6333:6333"
+    networks:
+      net_ai_soc:
+        ipv4_address: 172.28.30.10
+
+  # [Device 5 - AI-SOC Zone] Ollama Local LLM Inference Engine
+  ollama-llm:
+    image: ollama/ollama:latest
+    container_name: thmd-guru-vm4-ollama
+    hostname: ollama-llm
+    ports:
+      - "11434:11434"
+    networks:
+      net_ai_soc:
+        ipv4_address: 172.28.30.20
+
+networks:
+  net_red_scanner:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.10.0/24
+  net_dmz_target:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.20.0/24
+  net_ai_soc:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.30.0/24

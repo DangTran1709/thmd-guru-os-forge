@@ -15,6 +15,7 @@ REQUIRED_FILES=(
     "core/includes.chroot/etc/os-release"
     "core/includes.chroot/usr/lib/os-release"
     "core/includes.chroot/etc/sysctl.d/90-thmd-guru-base.conf"
+    "core/includes.chroot/etc/audit/rules.d/90-thmd-guru-mitre.rules"
     "core/kernel/sysctl/91-desktop.conf"
     "core/kernel/sysctl/91-server.conf"
     "core/kernel/sysctl/91-attt.conf"
@@ -25,6 +26,12 @@ REQUIRED_FILES=(
     "core/branding/thmd-guru-logo.svg"
     "core/branding/wallpaper-sapphire-gold.svg"
     "packages/guru-cli/src/guru"
+    "packages/guru-cli/src/THMD-guru-ai"
+    "packages/guru-cli/labs/nckh-zap-rag/docker-compose.yml"
+    "packages/guru-cli/labs/nckh-zap-rag/owasp_cwe_kb.json"
+    "packages/guru-cli/labs/nckh-zap-rag/zap_raw_alerts.json"
+    "packages/guru-cli/labs/nckh-zap-rag/run_experiment.py"
+    "packages/guru-cli/labs/netops-bgp-sdn/docker-compose.yml"
     "packages/thmd-guru-branding/debian/control"
     "packages/guru-welcome/src/guru-welcome"
     "packages/guru-server-console/src/console-plugin"
@@ -58,13 +65,24 @@ while IFS= read -r -d '' sh_file; do
 done < <(find core editions packages builder tests -type f \( -name "*.sh" -o -name "*.hook.chroot" -o -name "*-plugin" -o -name "guru" \) -print0)
 echo "[PASS 2/7] All Bash scripts, hooks, and CLI plugins passed syntax verification (bash -n)."
 
-# 3. Positive CLI Functional Verification
-output="$("${ROOT_DIR}/packages/guru-cli/src/guru" help)"
-grep -q "THMD-Guru" <<< "${output}"
-"${ROOT_DIR}/packages/guru-cli/src/guru" info >/dev/null
-"${ROOT_DIR}/packages/guru-cli/src/guru" status --json | grep -q '"edition":'
-"${ROOT_DIR}/packages/guru-cli/src/guru" lab list >/dev/null
-echo "[PASS 3/7] guru CLI positive functional tests (help, info, status --json, lab list) verified."
+# 3. Positive CLI Functional Verification (THMD-guru-ai & guru + NCKH & VMware Multi-VM)
+output="$("${ROOT_DIR}/packages/guru-cli/src/THMD-guru-ai" help)"
+grep -q "THMD-guru-ai" <<< "${output}"
+"${ROOT_DIR}/packages/guru-cli/src/THMD-guru-ai" info >/dev/null
+status_json="$("${ROOT_DIR}/packages/guru-cli/src/THMD-guru-ai" status --json)"
+grep -q '"cli":"THMD-guru-ai"' <<< "${status_json}"
+lab_out="$("${ROOT_DIR}/packages/guru-cli/src/THMD-guru-ai" lab list)"
+grep -q "nckh-zap-rag" <<< "${lab_out}"
+exp_out="$("${ROOT_DIR}/packages/guru-cli/src/THMD-guru-ai" lab run nckh-zap-rag)"
+grep -q "NDCG@5" <<< "${exp_out}"
+vm_out="$("${ROOT_DIR}/packages/guru-cli/src/THMD-guru-ai" vm-node status)"
+grep -q "edge-router-waf" <<< "${vm_out}"
+"${ROOT_DIR}/packages/guru-cli/src/THMD-guru-ai" vm-node init scanner-red --dry-run >/dev/null
+"${ROOT_DIR}/packages/guru-cli/src/THMD-guru-ai" ai status >/dev/null
+"${ROOT_DIR}/packages/guru-cli/src/THMD-guru-ai" gpu >/dev/null
+"${ROOT_DIR}/packages/guru-cli/src/THMD-guru-ai" dev-env >/dev/null
+"${ROOT_DIR}/packages/guru-cli/src/THMD-guru-ai" arsenal list >/dev/null
+echo "[PASS 3/7] THMD-guru-ai CLI positive functional tests (NCKH ZAP+RAG, VMware vm-node, AI, GPU, Arsenal) verified."
 
 # 4. Negative & Fail-Closed Security Tests (CWE-636 Mitigation)
 set +e
@@ -100,6 +118,12 @@ grep -q "chage -d 0 guru" "editions/server/includes.binary/preseed/thmd-guru-ser
 grep -q "limit rate 10/minute" "editions/server/hooks/live/0200-server-setup.hook.chroot"
 grep -q "disable_ipv6" "packages/guru-stealth/src/stealth-plugin"
 grep -q "5353, 5355" "packages/guru-stealth/src/stealth-plugin"
+grep -q "vm.max_map_count = 1048576" "core/kernel/sysctl/91-desktop.conf"
+grep -q "vm.max_map_count = 1048576" "core/kernel/sysctl/91-server.conf"
+grep -q "T1055_process_injection" "core/includes.chroot/etc/audit/rules.d/90-thmd-guru-mitre.rules"
+grep -q "open-vm-tools" "editions/desktop/package-lists/desktop.list.chroot"
+grep -q "open-vm-tools" "editions/server/package-lists/server.list.chroot"
+grep -q "open-vm-tools" "editions/attt/package-lists/attt.list.chroot"
 grep -q "grep -q" "core/hooks/live/0100-thmd-guru-core.hook.chroot"
 grep -q "grep -q" "editions/attt/hooks/live/0200-attt-setup.hook.chroot"
 echo "[PASS 5/7] Security Policy & Idempotency Audit (SSH, Preseed, Cloud-Init, Stealth IPv6/mDNS, Hooks) verified."

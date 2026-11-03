@@ -1,3 +1,4 @@
 src/guru usr/bin/
+src/THMD-guru-ai usr/bin/
 completion/guru usr/share/bash-completion/completions/
 labs/* usr/share/thmd-guru/labs/

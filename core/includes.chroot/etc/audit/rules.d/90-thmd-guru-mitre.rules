@@ -1,0 +1,52 @@
+# ==============================================================================
+# THMD-Guru Linux 1.0 (Genesis) — MITRE ATT&CK Mapped Linux Auditd Ruleset
+# Owner: security-attt-lead & server-infra-lead
+# Reference: MITRE ATT&CK v15 for Enterprise (Linux Matrix) & CIS Benchmark L2
+# ==============================================================================
+
+# Remove any existing rules and set buffer size
+-D
+-b 8192
+-f 1
+
+# [MITRE T1098 / T1136] Account Manipulation & Create Account
+-w /etc/passwd -p wa -k T1098_identity_modification
+-w /etc/shadow -p wa -k T1098_identity_modification
+-w /etc/group -p wa -k T1098_identity_modification
+-w /etc/gshadow -p wa -k T1098_identity_modification
+-w /etc/security/opasswd -p wa -k T1098_identity_modification
+
+# [MITRE T1548.003] Abuse Elevation Control Mechanism: Sudo and Sudo Caching
+-w /etc/sudoers -p wa -k T1548_003_sudoers_change
+-w /etc/sudoers.d/ -p wa -k T1548_003_sudoers_change
+
+# [MITRE T1055] Process Injection via ptrace
+-a always,exit -F arch=b64 -S ptrace -k T1055_process_injection
+-a always,exit -F arch=b64 -S ptrace -F a0=0x4 -k T1055_ptrace_code_injection
+-a always,exit -F arch=b64 -S ptrace -F a0=0x5 -k T1055_ptrace_data_injection
+-a always,exit -F arch=b64 -S ptrace -F a0=0x6 -k T1055_ptrace_register_injection
+
+# [MITRE T1547.006] Boot or Logon Autostart Execution: Kernel Modules
+-w /sbin/insmod -p x -k T1547_006_kernel_module
+-w /sbin/rmmod -p x -k T1547_006_kernel_module
+-w /sbin/modprobe -p x -k T1547_006_kernel_module
+-a always,exit -F arch=b64 -S init_module -S finit_module -S delete_module -k T1547_006_kernel_module
+
+# [MITRE T1016 / T1562.004] System Network Configuration & Disable/Modify System Firewall
+-a always,exit -F arch=b64 -S sethostname -S setdomainname -k T1016_network_config_change
+-w /etc/hosts -p wa -k T1016_network_config_change
+-w /etc/network/ -p wa -k T1016_network_config_change
+-w /etc/nftables.conf -p wa -k T1562_004_firewall_modification
+
+# [MITRE T1053.003] Scheduled Task/Job: Cron Persistence
+-w /etc/crontab -p wa -k T1053_003_cron_persistence
+-w /etc/cron.d/ -p wa -k T1053_003_cron_persistence
+-w /var/spool/cron/crontabs/ -p wa -k T1053_003_cron_persistence
+
+# [MITRE T1070.002] Indicator Removal: Clear Linux or Mac System Logs
+-w /var/log/audit/ -p wa -k T1070_002_audit_log_tamper
+-w /var/log/auth.log -p wa -k T1070_002_auth_log_tamper
+-w /etc/audit/ -p wa -k T1070_002_audit_config_tamper
+
+# [MITRE T1059 / T1548] Privileged Command Execution by Non-Root Users
+-a always,exit -F arch=b64 -S execve -C uid!=euid -F euid=0 -F auid>=1000 -F auid!=4294967295 -k T1548_priv_escalation_exec

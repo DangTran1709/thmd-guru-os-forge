@@ -61,5 +61,20 @@ default-jdk
 sqlite3
 docker.io
 docker-compose
+podman-docker
 zram-tools
 flatpak
+
+# Modern Developer CLI & Data Science Productivity
+jq
+fzf
+bat
+fd-find
+ripgrep
+htop
+curl
+wget
+
+# VMware Workstation / ESXi Guest Integration
+open-vm-tools
+open-vm-tools-desktop

@@ -39,7 +39,7 @@ fail2ban
 ufw
 nftables
 
-# Network Diagnostics & Traffic Inspection
+# Network Diagnostics, Routing & Traffic Inspection
 wireshark
 tshark
 tcpdump
@@ -49,12 +49,34 @@ ndiff
 netcat-openbsd
 socat
 mtr-tiny
+iperf3
+lldpd
+conntrack
+bpftool
+vlan
+bridge-utils
+ipcalc
+arp-scan
 whois
 dnsutils
 ethtool
 macchanger
 openvpn
 wireguard-tools
+
+# Web Application Pentest (OWASP), Exploitation & Hardware Defense
+sqlmap
+gobuster
+hydra
+john
+proxychains4
+usbguard
+jq
+curl
+
+# VMware Workstation / ESXi Cyber-Range Guest Integration
+open-vm-tools
+open-vm-tools-desktop
 
 # Digital Forensics & Incident Response (DFIR)
 sleuthkit

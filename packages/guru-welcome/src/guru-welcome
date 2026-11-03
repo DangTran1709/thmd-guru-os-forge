@@ -9,9 +9,10 @@ import subprocess
 import sys
 
 TRACKS = [
-    ("1. Full-Stack & Cloud Engineering", "Cài đặt VS Code, Docker, Node.js, Go, Rust, Python venv"),
-    ("2. AI & LLM Engineering Lab", "Cài đặt Ollama Local LLM Runtime & Python Data Science Stack"),
-    ("3. Cybersecurity & ATTT Range", "Khởi tạo môi trường kiểm thử bảo mật hợp pháp & Hardening"),
+    ("1. Full-Stack & Cloud Engineering", "Cài đặt VS Code, Podman/Docker, uv/fnm/rustup (THMD-guru-ai dev-env)"),
+    ("2. AI & LLM Engineering Lab", "Cài đặt Ollama Local LLM, Qdrant Vector DB & Kernel mmap tuning (THMD-guru-ai gpu)"),
+    ("3. Cybersecurity & ATTT Range", "Khởi tạo kho vũ khí OWASP/DFIR, MITRE Auditd & Sandbox (THMD-guru-ai arsenal)"),
+    ("4. Phòng Lab NCKH (ZAP + AI + RAG)", "Thực nghiệm AI + Hybrid RAG xác minh cảnh báo OWASP ZAP & VMware Multi-VM (THMD-guru-ai lab run nckh-zap-rag)"),
 ]
 
 def run_cli():
@@ -22,10 +23,12 @@ def run_cli():
     print("\nLộ trình học tập & Công cụ cài đặt nhanh (1-Click Academy Provisioning):")
     for title, desc in TRACKS:
         print(f"  \033[1;33m{title}\033[0m\n    -> {desc}")
-    print("\nLệnh cài đặt nhanh:")
-    print("  guru welcome --install-vscode   : Cài đặt Visual Studio Code chính thức")
-    print("  guru welcome --install-ollama   : Cài đặt Ollama Local AI Runtime")
-    print("  guru status                     : Kiểm tra trạng thái hệ thống THMD-Guru")
+    print("\nLệnh cài đặt & Thực nghiệm NCKH nhanh:")
+    print("  THMD-guru-ai welcome --install-vscode   : Cài đặt Visual Studio Code chính thức")
+    print("  THMD-guru-ai welcome --install-ollama   : Cài đặt Ollama Local AI Runtime")
+    print("  THMD-guru-ai lab run nckh-zap-rag       : Chạy thực nghiệm NCKH AI+RAG với OWASP ZAP")
+    print("  THMD-guru-ai vm-node status             : Quản lý sơ đồ 4 máy ảo trên VMware")
+    print("  THMD-guru-ai status                     : Kiểm tra trạng thái hệ thống THMD-Guru")
 
 def install_vscode():
     cmd = (

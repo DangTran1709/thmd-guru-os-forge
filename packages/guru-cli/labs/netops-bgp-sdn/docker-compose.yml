@@ -1,0 +1,39 @@
+version: "3.9"
+# THMD-Guru Linux 1.0 (Genesis) — Enterprise Network Engineering BGP/OSPF & SDN Lab
+# Topology: 2 Spine / Core Routers (AS 65001, AS 65002) + 1 Edge Security Gateway (AS 65010)
+services:
+  router-core-as65001:
+    image: quay.io/frrouting/frr:9.1.0
+    container_name: thmd-guru-bgp-core1
+    hostname: rtr-core-as65001
+    privileged: true
+    networks:
+      net_wan_ixp:
+        ipv4_address: 172.29.0.11
+
+  router-branch-as65002:
+    image: quay.io/frrouting/frr:9.1.0
+    container_name: thmd-guru-bgp-branch2
+    hostname: rtr-branch-as65002
+    privileged: true
+    networks:
+      net_wan_ixp:
+        ipv4_address: 172.29.0.12
+
+  perf-telemetry-node:
+    image: networkstatic/iperf3:latest
+    container_name: thmd-guru-netops-iperf3
+    hostname: netops-iperf3
+    command: -s
+    ports:
+      - "5201:5201"
+    networks:
+      net_wan_ixp:
+        ipv4_address: 172.29.0.20
+
+networks:
+  net_wan_ixp:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.29.0.0/24

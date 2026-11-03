@@ -201,6 +201,8 @@ def build_thmd_cpio_overlay_gz(root_dir: Path, edition: str) -> bytes:
         "etc",
         "etc/thmd-guru",
         "etc/sysctl.d",
+        "etc/audit",
+        "etc/audit/rules.d",
         "etc/NetworkManager",
         "etc/NetworkManager/conf.d",
         "usr",
@@ -223,7 +225,7 @@ def build_thmd_cpio_overlay_gz(root_dir: Path, edition: str) -> bytes:
         executable=True,
     )
 
-    # Core OS identity files
+    # Core OS identity files & MITRE ATT&CK Auditd Rules
     for rel in [
         "etc/os-release",
         "usr/lib/os-release",
@@ -233,6 +235,7 @@ def build_thmd_cpio_overlay_gz(root_dir: Path, edition: str) -> bytes:
         "etc/motd",
         "etc/thmd-guru/version",
         "etc/sysctl.d/90-thmd-guru-base.conf",
+        "etc/audit/rules.d/90-thmd-guru-mitre.rules",
     ]:
         src = root_dir / "core/includes.chroot" / rel
         if src.exists():
@@ -245,12 +248,10 @@ def build_thmd_cpio_overlay_gz(root_dir: Path, edition: str) -> bytes:
     if sysctl_ed.exists():
         add_file(f"etc/sysctl.d/91-{edition}.conf", sysctl_ed.read_bytes().replace(b"\r\n", b"\n"))
 
-    # Install `guru` CLI and ONLY edition-appropriate plugins (Strict Edition Isolation)
-    add_file(
-        "usr/bin/guru",
-        (root_dir / "packages/guru-cli/src/guru").read_bytes().replace(b"\r\n", b"\n"),
-        executable=True,
-    )
+    # Install `THMD-guru-ai` + `guru` CLI and ONLY edition-appropriate plugins (Strict Edition Isolation)
+    guru_cli_bytes = (root_dir / "packages/guru-cli/src/guru").read_bytes().replace(b"\r\n", b"\n")
+    add_file("usr/bin/guru", guru_cli_bytes, executable=True)
+    add_file("usr/bin/THMD-guru-ai", guru_cli_bytes, executable=True)
     edition_plugins: dict[str, dict[str, Path]] = {
         "desktop": {
             "welcome": root_dir / "packages/guru-welcome/src/welcome-plugin",

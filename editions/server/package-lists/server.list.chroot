@@ -10,11 +10,12 @@ cockpit-podman
 cockpit-storaged
 cockpit-packagekit
 
-## Cloud / provisioning
+## Cloud / provisioning & VMware Virtualization
 cloud-init
 cloud-guest-utils
 cloud-initramfs-growroot
 qemu-guest-agent
+open-vm-tools
 
 ## Firewall & intrusion prevention
 nftables
@@ -53,12 +54,23 @@ htop
 iotop
 auditd
 
-## Network tooling / eBPF
+## Network tooling / eBPF / Enterprise Routing (FRR) & Multi-Zone WAF
 iproute2
 ethtool
 tcpdump
 bpftool
 bpfcc-tools
+frr
+frr-pythontools
+iperf3
+mtr-tiny
+lldpd
+conntrack
+vlan
+bridge-utils
+ipcalc
+nginx
+libmodsecurity3
 dnsutils
 curl
 wget

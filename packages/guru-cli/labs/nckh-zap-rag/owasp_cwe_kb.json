@@ -1,0 +1,125 @@
+{
+  "metadata": {
+    "name": "THMD-Guru OWASP Top 10, CWE, CVSS v3.1 & WSTG Verification Knowledge Base",
+    "version": "1.0.0",
+    "maintainer": "THMD-Guru Global Tech Academy — Cyber-AI Research Committee"
+  },
+  "entries": [
+    {
+      "cwe_id": "CWE-89",
+      "owasp_top10": "A03:2021 - Injection",
+      "wstg_id": "WSTG-INPV-05",
+      "name": "SQL Injection (SQLi)",
+      "cvss_base": 9.8,
+      "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+      "tp_indicators": [
+        "SQLITE_ERROR",
+        "You have an error in your SQL syntax",
+        "PostgreSQL query failed",
+        "ORA-01756",
+        "UNION SELECT",
+        "authentication bypass returning valid JWT token"
+      ],
+      "fp_exclusion_rules": [
+        "Generic HTTP 500 Internal Server Error caused by JSON/integer type parsing without SQL driver trace",
+        "Static error page returning fixed template string regardless of single/double quote balance"
+      ],
+      "remediation": "Use parameterized queries (Prepared Statements) or bound ORM parameters; never concatenate user input into SQL strings."
+    },
+    {
+      "cwe_id": "CWE-639",
+      "owasp_top10": "A01:2021 - Broken Access Control",
+      "wstg_id": "WSTG-ATHZ-04",
+      "name": "Insecure Direct Object Reference (IDOR) / Broken Object Level Authorization",
+      "cvss_base": 8.6,
+      "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:N",
+      "tp_indicators": [
+        "HTTP 200 OK with another user's private BasketId, UserId, or Order record",
+        "Cross-tenant JSON object returned when incrementing resource ID"
+      ],
+      "fp_exclusion_rules": [
+        "Public catalog or product review endpoint intended for unauthenticated read access"
+      ],
+      "remediation": "Enforce server-side object ownership checks comparing session user_id against resource owner_id on every controller route."
+    },
+    {
+      "cwe_id": "CWE-79",
+      "owasp_top10": "A03:2021 - Injection",
+      "wstg_id": "WSTG-INPV-01",
+      "name": "Cross-Site Scripting (Reflected / DOM XSS)",
+      "cvss_base": 7.2,
+      "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
+      "tp_indicators": [
+        "Unescaped <script>, <img onerror=, or <iframe src=\"javascript: rendered inside text/html response body",
+        "Direct DOM sink execution via innerHTML or bypassSecurityTrustHtml"
+      ],
+      "fp_exclusion_rules": [
+        "Payload reflected with HTML entity encoding (&lt;script&gt; or &quot;)",
+        "Payload reflected inside application/json response with Content-Type: application/json and X-Content-Type-Options: nosniff"
+      ],
+      "remediation": "Apply context-aware output encoding and strict Content-Security-Policy (CSP) headers."
+    },
+    {
+      "cwe_id": "CWE-918",
+      "owasp_top10": "A10:2021 - Server-Side Request Forgery (SSRF)",
+      "wstg_id": "WSTG-INPV-19",
+      "name": "Server-Side Request Forgery (SSRF)",
+      "cvss_base": 9.1,
+      "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:N",
+      "tp_indicators": [
+        "Internal loopback 127.0.0.1, 169.254.169.254 metadata, or internal subnet 172.28.x.x response content returned to client"
+      ],
+      "fp_exclusion_rules": [
+        "Client-side redirect URL validation where server does not perform outbound fetch"
+      ],
+      "remediation": "Validate and allowlist outbound URL schemes and domains; block RFC1918, loopback, and link-local IP ranges."
+    },
+    {
+      "cwe_id": "CWE-287",
+      "owasp_top10": "A07:2021 - Identification and Authentication Failures",
+      "wstg_id": "WSTG-ATHN-04",
+      "name": "Weak Authentication / JWT Signature Verification Bypass",
+      "cvss_base": 9.1,
+      "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N",
+      "tp_indicators": [
+        "alg:none JWT token accepted by server",
+        "Default administrator credentials accepted without rate limiting"
+      ],
+      "fp_exclusion_rules": [
+        "Token rejected with 401 Unauthorized"
+      ],
+      "remediation": "Enforce strong asymmetric JWT verification (RS256/EdDSA), reject 'none' algorithm, and enforce MFA/rate-limiting."
+    },
+    {
+      "cwe_id": "CWE-200",
+      "owasp_top10": "A01:2021 - Broken Access Control",
+      "wstg_id": "WSTG-CONF-04",
+      "name": "Exposure of Sensitive Information (.bak / FTP / Prometheus / Stack Trace)",
+      "cvss_base": 7.5,
+      "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+      "tp_indicators": [
+        "Exposed /ftp/acquisitions.md, package.json.bak, .env, or SQLite database dump downloadable with HTTP 200"
+      ],
+      "fp_exclusion_rules": [
+        "Standard HTML/JS build comment or license header without secrets or internal paths",
+        "Custom 404 SPA fallback page returning index.html with HTTP 200 for non-existent backup filenames"
+      ],
+      "remediation": "Disable directory listing, block access to backup/dotfiles at Nginx WAF, and disable verbose stack traces in production."
+    },
+    {
+      "cwe_id": "CWE-693",
+      "owasp_top10": "A05:2021 - Security Misconfiguration",
+      "wstg_id": "WSTG-CONF-07",
+      "name": "Missing Security Headers (CSP / X-Frame-Options / HSTS)",
+      "cvss_base": 4.3,
+      "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:L/A:N",
+      "tp_indicators": [
+        "Interactive HTML state-changing page missing Content-Security-Policy and X-Frame-Options"
+      ],
+      "fp_exclusion_rules": [
+        "Static image/font asset (.png, .woff2, .ico) missing X-Frame-Options or CSP header"
+      ],
+      "remediation": "Configure security headers globally on the Reverse Proxy / WAF for HTML document responses."
+    }
+  ]
+}
