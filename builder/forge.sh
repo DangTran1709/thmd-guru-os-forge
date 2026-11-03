@@ -99,14 +99,21 @@ stage_edition() {
     [[ -d "${ed_dir}/includes.binary" ]] && cp -rf "${ed_dir}/includes.binary/." config/includes.binary/
     chmod +x config/hooks/live/*.hook.chroot 2>/dev/null || true
 
-    # 3. Copy built .deb packages
+    # 3. Copy built .deb packages (Strictly isolated per edition to prevent dependency pollution)
     mkdir -p config/packages.chroot
-    if [[ -d "${BUILD_ROOT}/debs" ]]; then
-        cp -f "${BUILD_ROOT}/debs/"*.deb config/packages.chroot/ 2>/dev/null || true
-    fi
-    if [[ -d "${OUT_DIR}/debs" ]]; then
-        cp -f "${OUT_DIR}/debs/"*.deb config/packages.chroot/ 2>/dev/null || true
-    fi
+    local -a allowed_pkgs=("guru-cli")
+    case "${EDITION}" in
+        desktop) allowed_pkgs+=("thmd-guru-branding" "guru-welcome") ;;
+        server)  allowed_pkgs+=("guru-server-console") ;;
+        attt)    allowed_pkgs+=("thmd-guru-branding" "guru-sandbox" "guru-stealth") ;;
+    esac
+    for pkg in "${allowed_pkgs[@]}"; do
+        if [[ -f "${BUILD_ROOT}/debs/${pkg}_1.0.0_all.deb" ]]; then
+            cp -f "${BUILD_ROOT}/debs/${pkg}_1.0.0_all.deb" config/packages.chroot/
+        elif [[ -f "${OUT_DIR}/debs/${pkg}_1.0.0_all.deb" ]]; then
+            cp -f "${OUT_DIR}/debs/${pkg}_1.0.0_all.deb" config/packages.chroot/
+        fi
+    done
 
     echo "[OS Forge] Staged edition '${EDITION}' successfully."
 }

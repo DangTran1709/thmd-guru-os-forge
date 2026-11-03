@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# THMD-Guru Linux — Core System Configuration Hook
+# THMD-Guru Linux — Core System Configuration Hook (Idempotent)
 # Owner: chief-os-architect
 set -euo pipefail
 
@@ -28,7 +28,7 @@ if [[ -f "/usr/share/thmd-guru/sysctl/91-${EDITION}.conf" ]]; then
     echo "[THMD-Guru Core Hook] Installed sysctl profile for edition: ${EDITION}"
 fi
 
-# 4. Configure THMD-Guru Global Tech Academy Shell Prompt (Bash & Zsh)
+# 4. Configure THMD-Guru Global Tech Academy Shell Prompt (Bash & Zsh - Idempotent)
 cat << 'EOF' > /etc/profile.d/thmd-guru-prompt.sh
 # THMD-Guru Global Tech Academy — Cyber Sapphire & Royal Gold Prompt
 export EDITOR=nano
@@ -47,7 +47,7 @@ alias gi='guru info'
 EOF
 chmod 0644 /etc/profile.d/thmd-guru-prompt.sh
 
-if [[ -d /etc/zsh ]]; then
+if [[ -d /etc/zsh ]] && ! grep -q "THMD-Guru Global Tech Academy Zsh Configuration" /etc/zsh/zshrc 2>/dev/null; then
     cat << 'EOF' >> /etc/zsh/zshrc
 
 # THMD-Guru Global Tech Academy Zsh Configuration

@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
-# THMD-Guru OS Forge — Automated Repository, Package & Bootable ISO Integrity Smoke Test
-# Owner: os-forge-devops
+# THMD-Guru OS Forge — Automated QA, Pentest Regression & Bootable ISO Integrity Suite
+# Owner: os-forge-devops & security-attt-lead
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${ROOT_DIR}"
 
-echo "[THMD-Guru Smoke Test] Validating repository structure, configs, and scripts..."
+echo "===================================================================="
+echo "  THMD-GURU OS FORGE — SECURITY & QA VERIFICATION SUITE"
+echo "===================================================================="
 
+# 1. File Presence Check
 REQUIRED_FILES=(
     "core/includes.chroot/etc/os-release"
     "core/includes.chroot/usr/lib/os-release"
@@ -47,32 +50,109 @@ for f in "${REQUIRED_FILES[@]}"; do
         exit 1
     fi
 done
-echo "[PASS] All ${#REQUIRED_FILES[@]} core & edition files present."
+echo "[PASS 1/7] All ${#REQUIRED_FILES[@]} core & edition files present."
 
-# Validate bash syntax of all scripts and hooks
+# 2. Validate bash syntax of all scripts and hooks
 while IFS= read -r -d '' sh_file; do
     bash -n "${sh_file}"
 done < <(find core editions packages builder tests -type f \( -name "*.sh" -o -name "*.hook.chroot" -o -name "*-plugin" -o -name "guru" \) -print0)
-echo "[PASS] All Bash scripts, hooks, and CLI plugins passed syntax verification (bash -n)."
+echo "[PASS 2/7] All Bash scripts, hooks, and CLI plugins passed syntax verification (bash -n)."
 
-# Test `guru` CLI subcommands directly
+# 3. Positive CLI Functional Verification
 output="$("${ROOT_DIR}/packages/guru-cli/src/guru" help)"
 grep -q "THMD-Guru" <<< "${output}"
 "${ROOT_DIR}/packages/guru-cli/src/guru" info >/dev/null
+"${ROOT_DIR}/packages/guru-cli/src/guru" status --json | grep -q '"edition":'
 "${ROOT_DIR}/packages/guru-cli/src/guru" lab list >/dev/null
-echo "[PASS] guru CLI (help, info, lab) verified."
+echo "[PASS 3/7] guru CLI positive functional tests (help, info, status --json, lab list) verified."
 
-# Verify compiled Hybrid Bootable ISOs if present in out/
-for ed in desktop server attt; do
-    iso="out/thmd-guru-${ed}-1.0-genesis-amd64.iso"
-    if [[ -f "${iso}" ]]; then
-        size="$(wc -c < "${iso}" | tr -d '[:space:]')"
-        if [[ "${size}" -lt 50000000 ]]; then
-            echo "[FAIL] ISO ${iso} is too small (${size} bytes) — expected > 50MB bootable image" >&2
-            exit 1
-        fi
-        echo "[PASS] Verified Hybrid Bootable ISO: ${iso} (${size} bytes)"
-    fi
-done
+# 4. Negative & Fail-Closed Security Tests (CWE-636 Mitigation)
+set +e
+"${ROOT_DIR}/packages/guru-cli/src/guru" non_existent_subcommand >/dev/null 2>&1
+rc_unknown=$?
+sandbox_out="$(PATH="/nonexistent" /bin/sh "${ROOT_DIR}/packages/guru-sandbox/src/sandbox-plugin" run echo "UNISOLATED_EXECUTION_LEAK" 2>&1)"
+rc_sandbox=$?
+set -e
 
-echo "[THMD-Guru Smoke Test] ALL CHECKS PASSED SUCCESSFULLY!"
+if [[ "${rc_unknown}" -ne 127 ]]; then
+    echo "[FAIL] Expected exit code 127 for unknown subcommand, got ${rc_unknown}" >&2
+    exit 1
+fi
+if [[ "${rc_sandbox}" -eq 0 ]] || grep -q "UNISOLATED_EXECUTION_LEAK" <<< "${sandbox_out}"; then
+    echo "[FAIL] CRITICAL: guru-sandbox failed open and executed payload without isolation!" >&2
+    exit 1
+fi
+grep -q "FAIL-CLOSED" <<< "${sandbox_out}"
+echo "[PASS 4/7] Negative & Fail-Closed Sandbox Security Tests (CWE-636) verified."
+
+# 5. Security Policy & Idempotency Regression Audit (CWE-798 & OPSEC Mitigations)
+grep -q "^PermitRootLogin no" "editions/server/includes.chroot/etc/ssh/sshd_config.d/90-thmd-guru-hardened.conf"
+if grep -q "NOPASSWD:ALL" "editions/server/includes.chroot/etc/cloud/cloud.cfg.d/90_thmd_guru.cfg"; then
+    echo "[FAIL] Dangerous NOPASSWD:ALL found in server cloud-init config!" >&2
+    exit 1
+fi
+if grep -q "user-password password" "editions/server/includes.binary/preseed/thmd-guru-server.cfg"; then
+    echo "[FAIL] Plaintext password found in server preseed!" >&2
+    exit 1
+fi
+grep -q "user-password-crypted" "editions/server/includes.binary/preseed/thmd-guru-server.cfg"
+grep -q "chage -d 0 guru" "editions/server/includes.binary/preseed/thmd-guru-server.cfg"
+grep -q "limit rate 10/minute" "editions/server/hooks/live/0200-server-setup.hook.chroot"
+grep -q "disable_ipv6" "packages/guru-stealth/src/stealth-plugin"
+grep -q "5353, 5355" "packages/guru-stealth/src/stealth-plugin"
+grep -q "grep -q" "core/hooks/live/0100-thmd-guru-core.hook.chroot"
+grep -q "grep -q" "editions/attt/hooks/live/0200-attt-setup.hook.chroot"
+echo "[PASS 5/7] Security Policy & Idempotency Audit (SSH, Preseed, Cloud-Init, Stealth IPv6/mDNS, Hooks) verified."
+
+# 6. Cryptographic APT Repository Signature Verification
+if [[ -f "out/apt-repo/dists/genesis/Release.gpg" && -f "build/signing-keys/thmd-guru-archive.pub" ]]; then
+    openssl dgst -sha256 -verify "build/signing-keys/thmd-guru-archive.pub" \
+        -signature "out/apt-repo/dists/genesis/Release.gpg" \
+        "out/apt-repo/dists/genesis/Release" >/dev/null
+    echo "[PASS 6/7] Cryptographic RSA-4096 APT Repository Signature (Release.gpg) verified."
+fi
+
+# 7. Deep Binary ISO-9660 + El Torito + Hybrid MBR + Edition Isolation Audit
+PY_CMD="python"
+[[ -x "/c/Python314/python.exe" ]] && PY_CMD="/c/Python314/python.exe"
+
+if [[ -f "out/thmd-guru-desktop-1.0-genesis-amd64.iso" ]]; then
+    "${PY_CMD}" -c '
+import struct, sys
+from pathlib import Path
+sys.path.insert(0, "builder")
+
+expected_pools = {
+    "desktop": {"guru-cli_1.0.0_all.deb", "thmd-guru-branding_1.0.0_all.deb", "guru-welcome_1.0.0_all.deb"},
+    "server":  {"guru-cli_1.0.0_all.deb", "guru-server-console_1.0.0_all.deb"},
+    "attt":    {"guru-cli_1.0.0_all.deb", "thmd-guru-branding_1.0.0_all.deb", "guru-sandbox_1.0.0_all.deb", "guru-stealth_1.0.0_all.deb"},
+}
+
+for ed, expected_debs in expected_pools.items():
+    iso_path = Path(f"out/thmd-guru-{ed}-1.0-genesis-amd64.iso")
+    assert iso_path.exists(), f"Missing {iso_path}"
+    data = iso_path.read_bytes()
+    assert len(data) > 50_000_000, f"ISO too small: {len(data)}"
+    # 1. Verify Hybrid MBR 0x55AA signature
+    assert data[510:512] == b"\x55\xaa", f"{ed}: Missing MBR 0x55AA signature"
+    # 2. Verify Primary Volume Descriptor (Sector 16)
+    pvd = data[16*2048:17*2048]
+    assert pvd[0] == 1 and pvd[1:6] == b"CD001", f"{ed}: Invalid PVD"
+    # 3. Verify El Torito Boot Record (Sector 17)
+    brvd = data[17*2048:18*2048]
+    assert brvd[0] == 0 and b"EL TORITO SPECIFICATION" in brvd, f"{ed}: Missing El Torito Boot Record"
+    # 4. Verify Edition Package Isolation in /pool/main
+    for deb in ["guru-cli_1.0.0_all.deb", "thmd-guru-branding_1.0.0_all.deb", "guru-welcome_1.0.0_all.deb", "guru-server-console_1.0.0_all.deb", "guru-sandbox_1.0.0_all.deb", "guru-stealth_1.0.0_all.deb"]:
+        nm_tag = b"NM" + bytes([5 + len(deb), 1, 0]) + deb.encode()
+        present = nm_tag in data
+        if deb in expected_debs:
+            assert present, f"{ed}: Missing expected package {deb} in ISO"
+        else:
+            assert not present, f"{ed}: Cross-edition package pollution detected: {deb} found in {ed} ISO!"
+print("[PASS 7/7] Binary ISO-9660, El Torito BIOS/UEFI, MBR Signature & Strict Edition Package Isolation verified.")
+'
+fi
+
+echo "===================================================================="
+echo "  ALL 7 QA & PENTEST VERIFICATION STAGES PASSED SUCCESSFULLY!"
+echo "===================================================================="

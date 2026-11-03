@@ -3,11 +3,12 @@
 # Owner: server-infra-lead
 set -euo pipefail
 
-echo "[THMD-Guru Server Hook] Configuring headless server stack, firewall, Cockpit, and Podman..."
+echo "[THMD-Guru Server Hook] Configuring headless server stack, rate-limited firewall, Cockpit, and Podman..."
 
 echo "server" > /etc/thmd-guru/edition
+cp -f /usr/share/thmd-guru/sysctl/91-server.conf /etc/sysctl.d/91-thmd-guru-server.conf 2>/dev/null || true
 
-# Configure nftables baseline firewall (allow SSH 22/tcp and Cockpit 9090/tcp)
+# Configure nftables baseline firewall with anti-bruteforce rate-limiting on SSH (22) and Cockpit (9090)
 cat << 'EOF' > /etc/nftables.conf
 #!/usr/sbin/nft -f
 flush ruleset
@@ -18,12 +19,12 @@ table inet filter {
         iif "lo" accept
         ct state established,related accept
         ct state invalid drop
-        ip protocol icmp accept
-        ip6 nexthdr icmpv6 accept
-        tcp dport { 22, 9090 } accept
+        ip protocol icmp limit rate 10/second accept
+        ip6 nexthdr icmpv6 limit rate 10/second accept
+        tcp dport { 22, 9090 } ct state new limit rate 10/minute burst 5 packets accept
     }
     chain forward {
-        type filter hook forward priority 0; policy accept;
+        type filter hook forward priority 0; policy drop;
     }
     chain output {
         type filter hook output priority 0; policy accept;

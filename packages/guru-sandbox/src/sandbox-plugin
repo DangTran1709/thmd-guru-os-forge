@@ -1,45 +1,85 @@
 #!/usr/bin/env bash
-# guru-description: Run untrusted binaries inside an isolated Firejail/Namespace sandbox
+# guru-description: Run untrusted binaries inside an isolated Firejail/Namespace sandbox (Fail-Closed)
 # Owner: security-attt-lead
 set -eu
+(set -o pipefail 2>/dev/null) && set -o pipefail
 
 usage() {
     cat << 'EOF'
-THMD-Guru Sandbox Isolation Utility (guru sandbox)
+THMD-Guru Sandbox Isolation Utility (guru sandbox) — Fail-Closed Architecture
 Usage:
-  guru sandbox run <command> [args...]     Run command inside isolated container
+  guru sandbox run <command> [args...]     Run command inside isolated container/namespace
   guru sandbox netless <command> [args...] Run command with zero network access (--net=none)
   guru sandbox status                      Show sandbox isolation engine status
 EOF
+}
+
+fail_closed() {
+    printf '\033[1;31m[SECURITY BLOCK - FAIL-CLOSED]\033[0m %s\n' "$*" >&2
+    printf 'Refusing to execute untrusted binary without mandatory kernel isolation!\n' >&2
+    exit 126
+}
+
+run_isolated() {
+    mode="$1"
+    shift
+    [ $# -eq 0 ] && { usage >&2; exit 1; }
+
+    # Backend 1: Firejail (Full seccomp-bpf + capability drop + private home)
+    if command -v firejail >/dev/null 2>&1; then
+        if [ "$mode" = "netless" ]; then
+            exec firejail --quiet --private --net=none --caps.drop=all --nonewprivs --noroot --seccomp "$@"
+        else
+            exec firejail --quiet --private --caps.drop=all --nonewprivs --noroot --seccomp "$@"
+        fi
+    fi
+
+    # Backend 2: Bubblewrap (bwrap unprivileged user/net/pid namespaces)
+    if command -v bwrap >/dev/null 2>&1; then
+        if [ "$mode" = "netless" ]; then
+            exec bwrap --ro-bind / / --tmpfs /tmp --tmpfs /root --dev /dev --proc /proc --unshare-all --die-with-parent --new-session "$@"
+        else
+            exec bwrap --ro-bind / / --tmpfs /tmp --tmpfs /root --dev /dev --proc /proc --unshare-user --unshare-pid --unshare-ipc --unshare-uts --die-with-parent --new-session "$@"
+        fi
+    fi
+
+    # Backend 3: Linux Kernel Namespaces via `unshare` (util-linux / busybox)
+    if command -v unshare >/dev/null 2>&1; then
+        if [ "$mode" = "netless" ]; then
+            if unshare -r -n -m -p -u -i -f true 2>/dev/null; then
+                exec unshare -r -n -m -p -u -i -f "$@"
+            elif unshare -n -m true 2>/dev/null; then
+                exec unshare -n -m "$@"
+            fi
+        else
+            if unshare -r -m -p -u -i -f true 2>/dev/null; then
+                exec unshare -r -m -p -u -i -f "$@"
+            elif unshare -m true 2>/dev/null; then
+                exec unshare -m "$@"
+            fi
+        fi
+    fi
+
+    # Fail-Closed: Never execute untrusted payload directly on host!
+    fail_closed "No working sandbox backend (firejail, bwrap, or unshare namespaces) available."
 }
 
 cmd="${1:-help}"
 [ $# -gt 0 ] && shift
 
 case "${cmd}" in
-    run)
-        [ $# -eq 0 ] && { usage; exit 1; }
-        if command -v firejail >/dev/null 2>&1; then
-            exec firejail --private --caps.drop=all --nonewprivs --noroot "$@"
-        else
-            printf '[THMD-Guru Sandbox] Executing isolated command: %s\n' "$*"
-            exec "$@"
-        fi
-        ;;
-    netless)
-        [ $# -eq 0 ] && { usage; exit 1; }
-        if command -v firejail >/dev/null 2>&1; then
-            exec firejail --private --net=none --caps.drop=all --nonewprivs --noroot "$@"
-        else
-            printf '[THMD-Guru Sandbox] Executing netless isolated command: %s\n' "$*"
-            exec "$@"
-        fi
-        ;;
+    run)     run_isolated "standard" "$@" ;;
+    netless) run_isolated "netless" "$@" ;;
     status)
         if command -v firejail >/dev/null 2>&1; then
-            firejail --list
+            echo "[OK] Sandbox Engine: Firejail (seccomp-bpf + caps.drop=all) — Fail-Closed Enabled"
+            firejail --list || true
+        elif command -v bwrap >/dev/null 2>&1; then
+            echo "[OK] Sandbox Engine: Bubblewrap (Linux unprivileged namespaces) — Fail-Closed Enabled"
+        elif command -v unshare >/dev/null 2>&1; then
+            echo "[OK] Sandbox Engine: Linux Kernel Namespaces (unshare) — Fail-Closed Enabled"
         else
-            echo "[THMD-Guru Sandbox] Namespace & Firejail profile ready (/etc/thmd-guru)."
+            echo "[WARN] Sandbox Engine: No backend installed (Fail-Closed active — execution blocked)"
         fi
         ;;
     *)

@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
-# THMD-Guru Linux ATTT — Hardening, AppArmor & Tactical Desktop Hook
+# THMD-Guru Linux ATTT — Hardening, AppArmor & Tactical Desktop Hook (Idempotent)
 # Owner: security-attt-lead
 set -euo pipefail
 
 echo "[THMD-Guru ATTT Hook] Configuring AppArmor, auditd, nftables default-deny, and XFCE..."
 
 echo "attt" > /etc/thmd-guru/edition
+cp -f /usr/share/thmd-guru/sysctl/91-attt.conf /etc/sysctl.d/91-thmd-guru-attt.conf 2>/dev/null || true
 
-# Append legal notice reminder to /etc/motd
-if [[ -f /etc/thmd-guru/LEGAL-NOTICE.txt ]]; then
+# Append legal notice reminder to /etc/motd (Idempotent guard)
+if [[ -f /etc/thmd-guru/LEGAL-NOTICE.txt ]] && ! grep -q "PHIEN BAN ATTT:" /etc/motd 2>/dev/null; then
     cat << 'EOF' >> /etc/motd
   [!] PHIEN BAN ATTT: Chi su dung cho muc dich dao tao & kiem thu duoc uy quyen.
       Xem chi tiet: /etc/thmd-guru/LEGAL-NOTICE.txt | Lenh: guru stealth | guru sandbox

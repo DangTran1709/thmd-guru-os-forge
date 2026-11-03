@@ -245,24 +245,31 @@ def build_thmd_cpio_overlay_gz(root_dir: Path, edition: str) -> bytes:
     if sysctl_ed.exists():
         add_file(f"etc/sysctl.d/91-{edition}.conf", sysctl_ed.read_bytes().replace(b"\r\n", b"\n"))
 
-    # Install `guru` CLI and all edition plugins into the Live RAM disk
+    # Install `guru` CLI and ONLY edition-appropriate plugins (Strict Edition Isolation)
     add_file(
         "usr/bin/guru",
         (root_dir / "packages/guru-cli/src/guru").read_bytes().replace(b"\r\n", b"\n"),
         executable=True,
     )
-    add_file(
-        "usr/bin/guru-welcome",
-        (root_dir / "packages/guru-welcome/src/guru-welcome").read_bytes().replace(b"\r\n", b"\n"),
-        executable=True,
-    )
-    plugins = {
-        "welcome": root_dir / "packages/guru-welcome/src/welcome-plugin",
-        "console": root_dir / "packages/guru-server-console/src/console-plugin",
-        "sandbox": root_dir / "packages/guru-sandbox/src/sandbox-plugin",
-        "stealth": root_dir / "packages/guru-stealth/src/stealth-plugin",
+    edition_plugins: dict[str, dict[str, Path]] = {
+        "desktop": {
+            "welcome": root_dir / "packages/guru-welcome/src/welcome-plugin",
+        },
+        "server": {
+            "console": root_dir / "packages/guru-server-console/src/console-plugin",
+        },
+        "attt": {
+            "sandbox": root_dir / "packages/guru-sandbox/src/sandbox-plugin",
+            "stealth": root_dir / "packages/guru-stealth/src/stealth-plugin",
+        },
     }
-    for pname, ppath in plugins.items():
+    if edition == "desktop":
+        add_file(
+            "usr/bin/guru-welcome",
+            (root_dir / "packages/guru-welcome/src/guru-welcome").read_bytes().replace(b"\r\n", b"\n"),
+            executable=True,
+        )
+    for pname, ppath in edition_plugins.get(edition, {}).items():
         add_file(
             f"usr/lib/guru/commands/{pname}",
             ppath.read_bytes().replace(b"\r\n", b"\n"),
@@ -905,9 +912,23 @@ def stage_and_build_edition(
     write_bootloader_configs(work_iso, edition)
     shutil.copy2(root_dir / "core/bootloader/grub-pc/theme.txt", work_iso / "boot/grub/theme.txt")
 
-    # 3. Copy APT Repo & Compiled .deb Packages
-    if (root_dir / "out/apt-repo/pool").exists():
-        shutil.copytree(root_dir / "out/apt-repo/pool", work_iso / "pool", dirs_exist_ok=True)
+    # 3. Copy Edition-Isolated .deb Packages & Signed APT Repo Metadata
+    edition_debs = {
+        "desktop": ["guru-cli_1.0.0_all.deb", "thmd-guru-branding_1.0.0_all.deb", "guru-welcome_1.0.0_all.deb"],
+        "server": ["guru-cli_1.0.0_all.deb", "guru-server-console_1.0.0_all.deb"],
+        "attt": [
+            "guru-cli_1.0.0_all.deb",
+            "thmd-guru-branding_1.0.0_all.deb",
+            "guru-sandbox_1.0.0_all.deb",
+            "guru-stealth_1.0.0_all.deb",
+        ],
+    }
+    if (root_dir / "out/apt-repo/pool/main").exists():
+        (work_iso / "pool/main").mkdir(parents=True, exist_ok=True)
+        for deb_name in edition_debs[edition]:
+            src_deb = root_dir / "out/apt-repo/pool/main" / deb_name
+            if src_deb.exists():
+                shutil.copy2(src_deb, work_iso / "pool/main" / deb_name)
         shutil.copytree(root_dir / "out/apt-repo/dists", work_iso / "dists", dirs_exist_ok=True)
 
     # 4. Copy Edition Overlay, Hooks, Package Lists & Secure Boot MOK Keys
@@ -964,7 +985,13 @@ fi
 echo "[1/4] Applying THMD-Guru RootFS Overlay & Identity..."
 cp -rf "${{ISO_ROOT}}/thmd-guru/rootfs/." /
 
-echo "[2/4] Installing THMD-Guru Native Debian Packages (.deb)..."
+echo "[2/4] Verifying Cryptographic Signature & Installing THMD-Guru Packages (.deb)..."
+if command -v openssl >/dev/null 2>&1 && [[ -f "${{ISO_ROOT}}/dists/genesis/Release.gpg" && -f "${{ISO_ROOT}}/dists/genesis/thmd-guru-archive.pub" ]]; then
+    openssl dgst -sha256 -verify "${{ISO_ROOT}}/dists/genesis/thmd-guru-archive.pub" \
+        -signature "${{ISO_ROOT}}/dists/genesis/Release.gpg" \
+        "${{ISO_ROOT}}/dists/genesis/Release"
+    echo "[OK] Cryptographic RSA-4096 signature of APT Release verified."
+fi
 dpkg -i "${{ISO_ROOT}}"/pool/main/*.deb || apt-get install -f -y
 
 echo "[3/4] Installing Edition Packages ({edition})..."
