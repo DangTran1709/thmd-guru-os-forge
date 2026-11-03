@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>THMD-Guru Linux 1.0 (Genesis) — Interactive OS Simulator</title>
+  <style>
+    :root {
+      --sapphire: #0B3D91;
+      --navy: #071A3A;
+      --ink: #0A0F1E;
+      --gold: #D4AF37;
+      --light-gold: #F5D77A;
+      --text: #E6ECF7;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: radial-gradient(circle at 50% 35%, var(--sapphire), var(--navy) 60%, var(--ink));
+      color: var(--text);
+      font-family: "Segoe UI", system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: rgba(7, 26, 58, 0.92);
+      border-bottom: 2px solid var(--gold);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      color: var(--light-gold);
+      letter-spacing: 1px;
+    }
+    .tabs {
+      display: flex;
+      gap: 8px;
+    }
+    .tab-btn {
+      background: var(--ink);
+      color: var(--text);
+      border: 1px solid var(--gold);
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.15s;
+    }
+    .tab-btn.active, .tab-btn:hover {
+      background: var(--gold);
+      color: var(--ink);
+    }
+    main {
+      flex: 1;
+      padding: 24px;
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    .view { display: none; }
+    .view.active { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .window {
+      background: rgba(10, 15, 30, 0.92);
+      border: 1px solid var(--gold);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+    }
+    .win-bar {
+      background: linear-gradient(90deg, var(--navy), var(--sapphire));
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--gold);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--light-gold);
+      display: flex;
+      justify-content: space-between;
+    }
+    .win-body {
+      padding: 16px;
+      font-family: "JetBrains Mono", "Consolas", monospace;
+      font-size: 13px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+    }
+    .gold { color: var(--light-gold); font-weight: bold; }
+    .cyan { color: #56B6C2; }
+    .green { color: #98C379; }
+    .card-list { display: flex; flex-direction: column; gap: 10px; font-family: sans-serif; }
+    .card {
+      background: rgba(11, 61, 145, 0.28);
+      border-left: 4px solid var(--gold);
+      padding: 12px;
+      border-radius: 6px;
+    }
+    .card h4 { color: var(--light-gold); margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <span>⬡ THMD-GURU LINUX 1.0 "GENESIS"</span>
+      <small style="color:#E6ECF7;font-weight:400;">| THMD-Guru Global Tech Academy</small>
+    </div>
+    <div class="tabs">
+      <button class="tab-btn active" onclick="showTab('desktop', this)">1. Bản Desktop (KDE)</button>
+      <button class="tab-btn" onclick="showTab('server', this)">2. Bản Server (Enterprise)</button>
+      <button class="tab-btn" onclick="showTab('attt', this)">3. Bản ATTT (Security)</button>
+      <button class="tab-btn" onclick="showTab('grub', this)">4. GRUB2 Bootloader</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="desktop" class="view active">
+      <div class="window">
+        <div class="win-bar"><span>Konsole — guru@guru-desktop:~ (ThmdGuru Profile)</span><span>[KDE Wayland]</span></div>
+        <div class="win-body"><span class="gold">[THMD-Guru:desktop]</span> <span class="cyan">guru@guru-desktop</span>:~$ guru info
+ .====================.    guru@guru-desktop
+ ||  _____   ____    ||    ----------------------------
+ || |_   _| / ___|   ||    OS       THMD-Guru Linux 1.0 (Genesis)
+ ||   | |  | |  _    ||    Edition  desktop (KDE Plasma Wayland)
+ ||   | |  | |_| |   ||    Base     Debian 12 (bookworm)
+ ||   |_|   \____|   ||    Kernel   6.1.0-thmd-guru-amd64
+  \\    G U R U     //     Packages 6 THMD-Guru .debs + APT Repo
+   \\              //      Sysctl   91-desktop.conf (BBR + ZRAM 50%)
+    `\\==========//`       Academy  THMD-Guru Global Tech Academy
+       `\\____//`          Slogan   Learn Deep. Build Real. Secure Everything.</div>
+      </div>
+      <div class="window">
+        <div class="win-bar"><span>THMD-Guru Welcome Center (guru-welcome)</span><span>v1.0.0</span></div>
+        <div class="win-body">
+          <div class="card-list">
+            <div class="card"><h4>1. Full-Stack & Cloud Engineering</h4><p>Cài đặt sẵn GCC/Clang, Rust, Go, Python 3, Node.js, Java, Docker & Calamares Installer.</p></div>
+            <div class="card"><h4>2. AI & LLM Engineering Lab</h4><p>1-Click cài đặt Ollama Local LLM + Qdrant Vector DB (`guru lab start ai-llm-rag`).</p></div>
+            <div class="card"><h4>3. Giao diện Cyber Sapphire & Royal Gold</h4><p>Đồng bộ bảng màu `ThmdGuruSapphire.colors`, Plymouth Splash & SDDM Login.</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="server" class="view">
+      <div class="window">
+        <div class="win-bar"><span>SSH Session — guru@guru-server:~</span><span>[Key-Only Auth]</span></div>
+        <div class="win-body"><span class="gold">[THMD-Guru:server]</span> <span class="cyan">guru@guru-server</span>:~$ guru console
+<span class="gold">====================================================================</span>
+<span class="cyan">   THMD-GURU SERVER CONSOLE — ENTERPRISE & CLOUD OPERATIONS</span>
+<span class="gold">====================================================================</span>
+  • Cockpit Web UI  : <span class="green">https://10.0.0.10:9090</span>
+  • Node Exporter   : <span class="green">http://10.0.0.10:9100/metrics</span>
+  • SSH Service     : active (PubkeyAuthentication Only, MaxAuthTries=3)
+  • Firewall (nft)  : active (Default Drop Inbound; Open: 22/tcp, 9090/tcp)
+  • Fail2ban        : active (sshd jail enabled)
+  • Kernel Tuning   : TCP BBR + Fair Queueing (somaxconn=32768)</div>
+      </div>
+      <div class="window">
+        <div class="win-bar"><span>Enterprise Provisioning & Cloud-Init</span><span>[Headless]</span></div>
+        <div class="win-body">
+          <div class="card-list">
+            <div class="card"><h4>Automated LVM Preseed Installer</h4><p>Tích hợp `/cdrom/preseed/thmd-guru-server.cfg` tự động phân vùng LVM không cần tương tác.</p></div>
+            <div class="card"><h4>Cloud-Init Ready (`90_thmd_guru.cfg`)</h4><p>Tương thích AWS, GCP, OpenStack, Proxmox VE và KVM với tài khoản vận hành `guru`.</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="attt" class="view">
+      <div class="window">
+        <div class="win-bar"><span>XFCE4 Terminal — guru@guru-attt:~</span><span>[AppArmor Enforced]</span></div>
+        <div class="win-body"><span class="gold">[THMD-Guru:attt]</span> <span class="cyan">guru@guru-attt</span>:~$ sudo guru stealth on
+<span class="green">[THMD-Guru Stealth] ĐÃ BẬT chế độ Stealth (Random MAC + Chặn ICMP Ping + Khóa Inbound).</span>
+
+<span class="gold">[THMD-Guru:attt]</span> <span class="cyan">guru@guru-attt</span>:~$ guru sandbox netless ./untrusted-sample
+[Firejail] Isolated namespace active: --private --net=none --caps.drop=all --nonewprivs</div>
+      </div>
+      <div class="window">
+        <div class="win-bar"><span>THMD-Guru ATTT Arsenal Menu (4 Nhóm Đào Tạo)</span><span>[CIS/KSPP Hardened]</span></div>
+        <div class="win-body">
+          <div class="card-list">
+            <div class="card"><h4>01. Network Diagnostics & Traffic</h4><p>`wireshark`, `tshark`, `tcpdump`, `nmap`, `socat`, `mtr-tiny`, `wireguard-tools`</p></div>
+            <div class="card"><h4>02. Blue Team, Auditing & SOC</h4><p>`lynis`, `rkhunter`, `chkrootkit`, `clamav`, `aide`, `auditd`, `fail2ban`</p></div>
+            <div class="card"><h4>03. Digital Forensics (DFIR)</h4><p>`sleuthkit`, `foremost`, `binwalk`, `exiftool`, `yara`, `radare2`, `testdisk`</p></div>
+            <div class="card"><h4>04. Stealth & Sandbox Isolation</h4><p>`guru stealth`, `guru sandbox` (Firejail + Bubblewrap)</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="grub" class="view">
+      <div class="window" style="grid-column: span 2;">
+        <div class="win-bar"><span>UEFI / BIOS GRUB2 Bootloader (core/bootloader/grub-pc/grub.cfg)</span><span>[Secure Boot MOK Signed]</span></div>
+        <div class="win-body" style="text-align:center;">
+<span class="gold">THMD-Guru Linux 1.0 (Genesis) — THMD-Guru Global Tech Academy</span>
+
+  ┌──────────────────────────────────────────────────────────────────────────────────┐
+  │ <span class="gold">► THMD-Guru Linux 1.0 (Genesis) — Live System</span>                                    │
+  │   THMD-Guru Linux 1.0 (Genesis) — Install Operating System                       │
+  │   THMD-Guru Linux 1.0 (Genesis) — Safe Mode (Load to RAM / No GPU ModeSet)       │
+  │   THMD-Guru Linux 1.0 (Genesis) — Forensic Mode (No Disk Automount / No Swap)    │
+  └──────────────────────────────────────────────────────────────────────────────────┘
+
+<span class="gold">Learn Deep. Build Real. Secure Everything. | [Enter] Boot  [E] Edit  [C] Command Line</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    function showTab(id, btn) {
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      btn.classList.add('active');
+    }
+  </script>
+</body>
+</html>
