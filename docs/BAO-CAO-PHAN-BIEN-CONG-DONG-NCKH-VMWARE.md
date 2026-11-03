@@ -321,3 +321,14 @@ Thiết kế tối ưu để chạy đồng thời **cả 4 máy ảo trên 1 m�
 | **5. Bộ Điều phối Máy ảo VMware (`THMD-guru-ai vm-node`)** | `Desktop`, `Server`, `ATTT` | Thêm lệnh `THMD-guru-ai vm-node init <role>` (`scanner-red`, `edge-router-waf`, `dmz-web-target`, `ai-rag-soc`) và `THMD-guru-ai vm-node clone-prep` hỗ trợ dựng nhanh hệ thống Multi-VM trên VMware. | ✅ **Đã triển khai & PASS** |
 | **6. Phòng Lab NCKH Liên ngành (`THMD-guru-ai lab nckh-zap-rag`)** | `Desktop`, `Server`, `ATTT` | Tích hợp sẵn sơ đồ hệ thống đa phân vùng, kho tri thức Vector **OWASP Top 10 / CWE / CVSS / WSTG**, kịch bản xác minh cảnh báo **OWASP ZAP** bằng **AI + Hybrid RAG**, và script xuất bảng số liệu thực nghiệm (`Precision = 100%`, `Recall = 100%`, `F1-Score = 100%`, `FPRR = 100%`, `NDCG@5 = 1.0000`). | ✅ **Đã triển khai & PASS** |
 | **7. Trợ lý AI nội bộ & Quản lý Kho Vũ khí (`THMD-guru-ai ai`, `THMD-guru-ai gpu`, `THMD-guru-ai arsenal`)** | `Desktop`, `Server`, `ATTT` | Tích hợp trợ lý dòng lệnh kết nối Local/Host LLM (`THMD-guru-ai ai`), trình kiểm tra tăng tốc phần cứng (`THMD-guru-ai gpu`) và trình quản lý kho công cụ bảo mật (`THMD-guru-ai arsenal`). | ✅ **Đã triển khai & PASS** |
+| **8. Chuẩn hóa Thiết kế GUI & CLI/TUI 2.0 (WCAG AAA Contrast & 4 Bản Giao diện Minh họa)** | `Desktop`, `Server`, `ATTT` | Nâng cấp bảng màu `ThmdGuru.colorscheme` đạt độ tương phản `7.4:1` (WCAG AAA), nâng cấp giao diện GTK3 Dark CSS cho `THMD-guru-ai-welcome`, và xuất bản bộ 4 hình minh họa giao diện độ phân giải cao tại `docs/ui-mockups/`. | ✅ **Đã triển khai & PASS** |
+
+---
+
+## Phần VI: Góc nhìn Chuyên gia Thiết kế Giao diện HĐH Linux (GUI & CLI/TUI — 30 năm kinh nghiệm)
+
+Chi tiết thẩm định quang học (WCAG 2.1 AAA Contrast), kiến trúc phân cấp bề mặt 4 tầng (*4-Tier Semantic Surface Elevation*) và bộ 4 giao diện minh họa độ phân giải cao (`1600x1000`) được lưu trữ tại:
+- `docs/ui-mockups/ui_mockup_1_design_system.png` — Hệ thống Thiết kế 2.0 (Before/After WCAG AAA Contrast & Semantic Color Tokens)
+- `docs/ui-mockups/ui_mockup_2_desktop_gui.png` — Giao diện GUI `THMD-Guru Desktop` (KDE Plasma + `THMD-guru-ai Welcome & NCKH Studio 2.0`)
+- `docs/ui-mockups/ui_mockup_3_attt_tactical_gui.png` — Giao diện Chiến thuật `THMD-Guru ATTT` (XFCE4 Tactical OPSEC HUD & Luồng xác minh OWASP ZAP + RAG)
+- `docs/ui-mockups/ui_mockup_4_cli_tui_cockpit.png` — Giao diện `THMD-guru-ai` CLI 2.0 & Server Terminal TUI Cockpit

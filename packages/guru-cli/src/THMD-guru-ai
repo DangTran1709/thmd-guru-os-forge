@@ -1,3 +1,4 @@
 #!/usr/bin/env bash
 # THMD-guru-ai — Primary CLI wrapper invoking the unified THMD-Guru AI & OS engine
 exec "$(dirname "$0")/guru" "$@"
+

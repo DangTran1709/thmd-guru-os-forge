@@ -44,32 +44,53 @@ def install_ollama():
 def run_gui():
     import gi
     gi.require_version("Gtk", "3.0")
-    from gi.repository import Gtk
+    from gi.repository import Gtk, Gdk
 
-    win = Gtk.Window(title="THMD-Guru Global Tech Academy — Welcome Center")
-    win.set_default_size(680, 440)
+    css = b"""
+    window { background-color: #0A0F1E; color: #E6ECF7; }
+    headerbar { background-color: #0C1830; color: #F5D77A; border-bottom: 2px solid #D4AF37; }
+    frame { background-color: #112244; border: 1px solid #234178; border-radius: 8px; padding: 6px; }
+    frame > label { color: #F5D77A; font-weight: bold; }
+    button { background-color: #0B3D91; color: #F5D77A; border: 1px solid #D4AF37; border-radius: 6px; font-weight: bold; padding: 6px 12px; }
+    button:hover { background-color: #162B54; }
+    """
+    provider = Gtk.CssProvider()
+    provider.load_from_data(css)
+    screen = Gdk.Screen.get_default()
+    if screen is not None:
+        Gtk.StyleContext.add_provider_for_screen(screen, provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+
+    win = Gtk.Window(title="THMD-guru-ai Welcome & NCKH Studio 2.0")
+    win.set_default_size(760, 520)
     win.set_border_width(18)
     win.connect("destroy", Gtk.main_quit)
+
+    hb = Gtk.HeaderBar(title="THMD-guru-ai Welcome & NCKH Studio 2.0")
+    hb.set_subtitle("THMD-Guru Global Tech Academy — Cyber Sapphire & Royal Gold")
+    hb.set_show_close_button(True)
+    win.set_titlebar(hb)
 
     vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
     win.add(vbox)
 
     header = Gtk.Label()
     header.set_markup(
-        "<span size='x-large' weight='bold' foreground='#D4AF37'>THMD-Guru Linux 1.0 (Genesis)</span>\n"
-        "<span foreground='#E6ECF7'>THMD-Guru Global Tech Academy — Learn Deep. Build Real. Secure Everything.</span>"
+        "<span size='x-large' weight='bold' foreground='#F5D77A'>THMD-Guru Linux 1.0 (Genesis)</span>\n"
+        "<span foreground='#60A5FA'>Learn Deep. Build Real. Secure Everything. (WCAG AAA Dark UI)</span>"
     )
     vbox.pack_start(header, False, False, 6)
 
     for title, desc in TRACKS:
         frame = Gtk.Frame(label=title)
-        lbl = Gtk.Label(label=desc, xalign=0.05)
+        lbl = Gtk.Label(label=desc, xalign=0.03)
         lbl.set_margin_top(8)
         lbl.set_margin_bottom(8)
         frame.add(lbl)
         vbox.pack_start(frame, False, False, 4)
 
     btn_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+    btn_nckh = Gtk.Button(label="Chạy Lab NCKH (ZAP + RAG)")
+    btn_nckh.connect("clicked", lambda _: subprocess.run(["THMD-guru-ai", "lab", "run", "nckh-zap-rag"], check=False))
     btn_vscode = Gtk.Button(label="Cài đặt VS Code")
     btn_vscode.connect("clicked", lambda _: install_vscode())
     btn_ollama = Gtk.Button(label="Cài đặt Ollama AI")
@@ -77,6 +98,7 @@ def run_gui():
     btn_close = Gtk.Button(label="Đóng")
     btn_close.connect("clicked", Gtk.main_quit)
 
+    btn_box.pack_start(btn_nckh, True, True, 0)
     btn_box.pack_start(btn_vscode, True, True, 0)
     btn_box.pack_start(btn_ollama, True, True, 0)
     btn_box.pack_start(btn_close, True, True, 0)

@@ -50,3 +50,4 @@
 
 # [MITRE T1059 / T1548] Privileged Command Execution by Non-Root Users
 -a always,exit -F arch=b64 -S execve -C uid!=euid -F euid=0 -F auid>=1000 -F auid!=4294967295 -k T1548_priv_escalation_exec
+
