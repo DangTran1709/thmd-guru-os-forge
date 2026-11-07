@@ -568,17 +568,17 @@ def build_vmware_manual_docx(root: Path, mockups_dir: Path, artifact_dir: Path, 
             [
                 "1. THMD-Guru ATTT 1.0\n(thmd-guru-attt-1.0-genesis-amd64.iso)",
                 "VM1 (192.168.80.10)\nMáy quét bảo mật Web OWASP ZAP",
-                "Link: https://github.com/DangTran1709/thmd-guru-os-forge/releases/download/v1.0.0-genesis/thmd-guru-attt-1.0-genesis-amd64.iso\nSHA256: dcd2d4f246e9c537f9c6999c8dc705c6c8dabbb05223c168a3e60f1f87c04bbf",
+                "Link: https://github.com/DangTran1709/thmd-guru-os-forge/releases/download/v1.0.0-genesis/thmd-guru-attt-1.0-genesis-amd64.iso\nSHA256: 61e884d0352755f96913ca40908fc2fadb9c1cde02e141d4f30b33e020e8f346",
             ],
             [
                 "2. THMD-Guru Server 1.0\n(thmd-guru-server-1.0-genesis-amd64.iso)",
                 "VM2 (192.168.80.20)\nWeb Server Mục tiêu (Nginx, DVWA, Juice Shop)",
-                "Link: https://github.com/DangTran1709/thmd-guru-os-forge/releases/download/v1.0.0-genesis/thmd-guru-server-1.0-genesis-amd64.iso\nSHA256: 57dedfeab9bd26659569db852a1a346bf097cd9a48a3992cffb3eb712499e82e",
+                "Link: https://github.com/DangTran1709/thmd-guru-os-forge/releases/download/v1.0.0-genesis/thmd-guru-server-1.0-genesis-amd64.iso\nSHA256: 92b8c83e9d76ee9bf09f48f624e8e668b7fd9cce6c94d67fb457fe081eee5b49",
             ],
             [
                 "3. THMD-Guru Desktop 1.0\n(thmd-guru-desktop-1.0-genesis-amd64.iso)",
                 "VM3 (192.168.80.30)\nMáy chủ AI-RAG (FastAPI, Qdrant, Ollama)",
-                "Link: https://github.com/DangTran1709/thmd-guru-os-forge/releases/download/v1.0.0-genesis/thmd-guru-desktop-1.0-genesis-amd64.iso\nSHA256: c1dea2dd657b566468ab71948744a245b8b1ff5e41b48278870e242069b86c20",
+                "Link: https://github.com/DangTran1709/thmd-guru-os-forge/releases/download/v1.0.0-genesis/thmd-guru-desktop-1.0-genesis-amd64.iso\nSHA256: d7f6fd3e1faa565282f4b021816594dab1557868df22c0d253fba1ec45212965",
             ],
         ],
     )
@@ -657,14 +657,14 @@ def build_vmware_manual_docx(root: Path, mockups_dir: Path, artifact_dir: Path, 
     )
     add_para(
         doc,
-        "Chọn mục số 1 'THMD-Guru Linux 1.0 (Genesis) - Live System'. Hệ điều hành khởi động thẳng vào bộ nhớ RAM trong chưa đầy 5 giây (hỗ trợ cả BIOS và UEFI), tự động khởi tạo udev/devtmpfs, nạp sẵn công cụ THMD-guru-ai và toàn bộ kịch bản phòng Lab tại /usr/share/thmd-guru/labs/ mà không cần chờ phân vùng ổ cứng.",
-        "Phương thức A — Khởi động tức thời (Live RAM OS < 5 giây): ",
+        "Chọn mục số 1 (Mặc định - Default) '1. THMD-Guru Linux 1.0 - Install & VMware Lab Wizard' (trình hướng dẫn thmd-installer tự động mở ngay sau 5 giây, cho phép gán tự động IP tĩnh 192.168.80.10 / .20 / .30 bằng 1 phím bấm 1/2/3 trên mạng VMnet2 không có DHCP) hoặc chạy bộ cài đồ họa Calamares trên bản Full Production ISO:",
+        "Phương thức A (Mặc định - Mục 1) — Trình hướng dẫn Cài đặt & Cấu hình Phòng Lab (thmd-installer / Calamares): ",
         bullet=True,
     )
     add_para(
         doc,
-        "Chọn mục số 2 'Install & VMware Lab Wizard' (trình hướng dẫn thmd-installer cho phép gán tự động IP tĩnh 192.168.80.10 / .20 / .30 bằng 1 phím bấm 1/2/3 trên mạng VMnet2 không có DHCP) hoặc chạy bộ cài đồ họa Calamares trên bản Full Production ISO theo 4 giai đoạn trực quan dưới đây:",
-        "Phương thức B — Trình hướng dẫn Cài đặt & Cấu hình Phòng Lab (thmd-installer / Calamares): ",
+        "Chọn mục số 2 '2. THMD-Guru Linux 1.0 - Live System (RAM OS)'. Hệ điều hành khởi động thẳng vào bộ nhớ RAM trong chưa đầy 5 giây (hỗ trợ cả BIOS và UEFI), tự động khởi tạo udev/devtmpfs, nạp sẵn công cụ THMD-guru-ai và toàn bộ kịch bản phòng Lab tại /usr/share/thmd-guru/labs/.",
+        "Phương thức B (Mục 2) — Khởi động tức thời vào Shell (Live RAM OS < 5 giây): ",
         bullet=True,
     )
 

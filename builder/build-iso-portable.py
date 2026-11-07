@@ -627,16 +627,16 @@ menu width 76
 menu title THMD-Guru Linux 1.0 (Genesis) - {ed_upper} Edition [BIOS/UEFI]
 include stdmenu.cfg
 
-label live
-    menu label ^1. THMD-Guru Linux 1.0 ({ed_upper}) - Live System (RAM OS)
+label install
+    menu label ^1. THMD-Guru Linux 1.0 ({ed_upper}) - Install & VMware Lab Wizard
     menu default
     kernel /linux
-    append vga=normal fb=false init=/bin/thmd-guru-live console=ttyS0,115200n8 console=tty0 initrd=/initrd.gz --- quiet
-
-label install
-    menu label ^2. THMD-Guru Linux 1.0 ({ed_upper}) - Install & VMware Lab Wizard
-    kernel /linux
     append vga=normal fb=false init=/bin/thmd-guru-live thmd_mode=install console=ttyS0,115200n8 console=tty0 initrd=/initrd.gz --- quiet
+
+label live
+    menu label ^2. THMD-Guru Linux 1.0 ({ed_upper}) - Live System (RAM OS)
+    kernel /linux
+    append vga=normal fb=false init=/bin/thmd-guru-live console=ttyS0,115200n8 console=tty0 initrd=/initrd.gz --- quiet
 
 label safe
     menu label ^3. THMD-Guru Linux 1.0 ({ed_upper}) - Safe Mode (nomodeset)
@@ -690,15 +690,15 @@ else
   set menu_color_highlight=yellow/blue
 fi
 
-menuentry "1. THMD-Guru Linux 1.0 (Genesis) [{ed_upper}] - Live System (RAM OS)" {{
+menuentry "1. THMD-Guru Linux 1.0 (Genesis) [{ed_upper}] - Install & VMware Lab Wizard" {{
     set gfxpayload=keep
-    linux  /linux init=/bin/thmd-guru-live console=ttyS0,115200n8 console=tty0 --- quiet
+    linux  /linux init=/bin/thmd-guru-live thmd_mode=install console=ttyS0,115200n8 console=tty0 --- quiet
     initrd /initrd.gz
 }}
 
-menuentry "2. THMD-Guru Linux 1.0 (Genesis) [{ed_upper}] - Install & VMware Lab Wizard" {{
+menuentry "2. THMD-Guru Linux 1.0 (Genesis) [{ed_upper}] - Live System (RAM OS)" {{
     set gfxpayload=keep
-    linux  /linux init=/bin/thmd-guru-live thmd_mode=install console=ttyS0,115200n8 console=tty0 --- quiet
+    linux  /linux init=/bin/thmd-guru-live console=ttyS0,115200n8 console=tty0 --- quiet
     initrd /initrd.gz
 }}
 
