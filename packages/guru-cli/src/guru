@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# THMD-guru-ai (alias: guru) — THMD-Guru Linux unified command-line tool.
+# THMD-guru-ai (alias: guru) - THMD-Guru Linux unified command-line tool.
 #
 # Built-in subcommands:
 #   info, status, harden, lab, vm-node, ai, gpu, dev-env, arsenal,
@@ -70,9 +70,9 @@ edition() {
 
 edition_label() {
     case "$1" in
-        desktop) printf 'Desktop (KDE Plasma — SWE & AI Workstation)' ;;
-        server)  printf 'Server (Enterprise Headless — Cloud, NetOps & WAF)' ;;
-        attt)    printf 'ATTT / Security (XFCE Tactical — Red/Blue/DFIR)' ;;
+        desktop) printf 'Desktop (KDE Plasma - SWE & AI Workstation)' ;;
+        server)  printf 'Server (Enterprise Headless - Cloud, NetOps & WAF)' ;;
+        attt)    printf 'ATTT / Security (XFCE Tactical - Red/Blue/DFIR)' ;;
         *)       printf 'unknown' ;;
     esac
 }
@@ -154,8 +154,8 @@ run_plugin() {
 
 cmd_help() {
     cat <<EOF
-${C_GOLD}${C_BOLD}THMD-guru-ai${C_RESET} ${GURU_VERSION} (${GURU_CODENAME}) — THMD-Guru Linux Command-Line Interface
-${C_SAPPHIRE}THMD-Guru Global Tech Academy — Learn Deep. Build Real. Secure Everything.${C_RESET}
+${C_GOLD}${C_BOLD}THMD-guru-ai${C_RESET} ${GURU_VERSION} (${GURU_CODENAME}) - THMD-Guru Linux Command-Line Interface
+${C_SAPPHIRE}THMD-Guru Global Tech Academy - Learn Deep. Build Real. Secure Everything.${C_RESET}
 
 ${C_BOLD}Usage:${C_RESET} THMD-guru-ai <command> [args...]   (alias: guru <command> [args...])
 
@@ -185,7 +185,7 @@ EOF
 }
 
 cmd_version() {
-    printf 'THMD-guru-ai %s (%s) — THMD-Guru Global Tech Academy\n' "$GURU_VERSION" "$GURU_CODENAME"
+    printf 'THMD-guru-ai %s (%s) - THMD-Guru Global Tech Academy\n' "$GURU_VERSION" "$GURU_CODENAME"
 }
 
 cmd_plugins() {
@@ -235,7 +235,7 @@ cmd_status() {
             "$ed" "$(cat "$GURU_ETC/version" 2>/dev/null || echo 1.0.0)" "$(uname -r)" "$load" "$vm_role"
         return 0
     fi
-    printf '%s%sTHMD-Guru Linux — System Health Status%s  (%s)\n' "$C_GOLD" "$C_BOLD" "$C_RESET" "$(edition_label "$ed")"
+    printf '%s%sTHMD-Guru Linux - System Health Status%s  (%s)\n' "$C_GOLD" "$C_BOLD" "$C_RESET" "$(edition_label "$ed")"
     printf '%s%s%s\n' "$C_SAPPHIRE" "------------------------------------------------------------" "$C_RESET"
     printf '  %-14s %s\n' "Host"      "$(hostname 2>/dev/null || cat /etc/hostname 2>/dev/null || echo thmd-guru)"
     printf '  %-14s %s\n' "Edition"   "$(edition_label "$ed")"
@@ -265,7 +265,7 @@ check_sysctl_key() {
 
 cmd_harden() {
     ed="$(edition)"
-    printf '%s%sTHMD-Guru Linux — CIS / KSPP Kernel & MITRE ATT&CK Hardening (%s)%s\n' "$C_GOLD" "$C_BOLD" "$ed" "$C_RESET"
+    printf '%s%sTHMD-Guru Linux - CIS / KSPP Kernel & MITRE ATT&CK Hardening (%s)%s\n' "$C_GOLD" "$C_BOLD" "$ed" "$C_RESET"
     printf '%s%s%s\n' "$C_SAPPHIRE" "------------------------------------------------------------" "$C_RESET"
     if [ "${1:-}" = "--apply" ] && [ "$(id -u)" -eq 0 ]; then
         for f in /etc/sysctl.d/90-thmd-guru-base.conf /etc/sysctl.d/91-*.conf; do
@@ -359,7 +359,7 @@ run_vmware_zap_rag_pfsense_benchmark() {
     fi
     cat << 'EOF'
 ====================================================================================================
- THMD-GURU LAB vmware-zap-rag-pfsense — OFFLINE DEMO (Juice Shop + DVWA, 20 alerts, 192.168.80.0/24)
+ THMD-GURU LAB vmware-zap-rag-pfsense - OFFLINE DEMO (Juice Shop + DVWA, 20 alerts, 192.168.80.0/24)
  Topology: Internet <-> Router <-> pfSense (192.168.80.1) <-> VMnet2 (VM1 .80.10, VM2 .80.20, VM3 .80.30)
 ====================================================================================================
 | Method                  | Engine              | TP | FP | FN | Precision | Recall | F1     | FPRR   | NDCG@5 | Cited  | ms/alert |
@@ -374,7 +374,7 @@ cmd_lab() {
     sub="${1:-list}"
     case "$sub" in
         list)
-            printf '%s%sTHMD-Guru Global Tech Academy — Official & NCKH Lab Catalog%s\n' "$C_GOLD" "$C_BOLD" "$C_RESET"
+            printf '%s%sTHMD-Guru Global Tech Academy - Official & NCKH Lab Catalog%s\n' "$C_GOLD" "$C_BOLD" "$C_RESET"
             printf '%s%s%s\n' "$C_SAPPHIRE" "------------------------------------------------------------" "$C_RESET"
             printf '  %s%-24s%s %s\n' "$C_LGOLD" "vmware-zap-rag-pfsense" "$C_RESET" "NCKH (VMnet2 192.168.80.0/24 + pfSense): VM1 ZAP (.10), VM2 Target (.20), VM3 AI-RAG (.30)"
             printf '  %s%-24s%s %s\n' "$C_LGOLD" "nckh-zap-rag"           "$C_RESET" "NCKH: AI + Hybrid RAG Verifying & Prioritizing OWASP ZAP Alerts (3 Subnets)"
@@ -564,7 +564,7 @@ cmd_ai() {
     ollama_url="${OLLAMA_HOST:-http://127.0.0.1:11434}"
     case "$sub" in
         status)
-            printf '%s%sTHMD-guru-ai — Local & VMware Host-Bridge AI Copilot%s\n' "$C_GOLD" "$C_BOLD" "$C_RESET"
+            printf '%s%sTHMD-guru-ai - Local & VMware Host-Bridge AI Copilot%s\n' "$C_GOLD" "$C_BOLD" "$C_RESET"
             printf '%s%s%s\n' "$C_SAPPHIRE" "------------------------------------------------------------" "$C_RESET"
             printf '  %-18s %s\n' "Inference Endpoint" "$ollama_url"
             printf '  %-18s %s\n' "RAG Vector DB"      "${QDRANT_URL:-http://172.28.30.10:6333}"
@@ -595,7 +595,7 @@ cmd_ai() {
 }
 
 cmd_gpu() {
-    printf '%s%sTHMD-guru-ai — AI Hardware Accelerator & Kernel Memory Map Check%s\n' "$C_GOLD" "$C_BOLD" "$C_RESET"
+    printf '%s%sTHMD-guru-ai - AI Hardware Accelerator & Kernel Memory Map Check%s\n' "$C_GOLD" "$C_BOLD" "$C_RESET"
     printf '%s%s%s\n' "$C_SAPPHIRE" "------------------------------------------------------------" "$C_RESET"
     if command -v lspci >/dev/null 2>&1; then
         gpu_line="$(lspci 2>/dev/null | grep -iE 'vga|3d|display' | head -n1 || true)"
@@ -610,7 +610,7 @@ cmd_gpu() {
 
 cmd_dev_env() {
     sub="${1:-status}"
-    printf '%s%sTHMD-guru-ai — Polyglot User-Space Developer Environment%s\n' "$C_GOLD" "$C_BOLD" "$C_RESET"
+    printf '%s%sTHMD-guru-ai - Polyglot User-Space Developer Environment%s\n' "$C_GOLD" "$C_BOLD" "$C_RESET"
     printf '%s%s%s\n' "$C_SAPPHIRE" "------------------------------------------------------------" "$C_RESET"
     printf '  %-16s %s\n' "Python (uv)"     "~/.local/bin/uv (Fast Python 3.11/3.12/3.13 virtualenv & package manager)"
     printf '  %-16s %s\n' "Node.js (fnm)"   "~/.local/share/fnm (Zero-root Node.js 20/22/24 LTS switcher)"
@@ -625,7 +625,7 @@ cmd_arsenal() {
     sub="${1:-list}"
     case "$sub" in
         list|check)
-            printf '%s%sTHMD-guru-ai — Cybersecurity & OWASP Arsenal Inventory%s\n' "$C_GOLD" "$C_BOLD" "$C_RESET"
+            printf '%s%sTHMD-guru-ai - Cybersecurity & OWASP Arsenal Inventory%s\n' "$C_GOLD" "$C_BOLD" "$C_RESET"
             printf '%s%s%s\n' "$C_SAPPHIRE" "------------------------------------------------------------" "$C_RESET"
             printf '  %s[1. Web & OWASP Pentest]%s  owasp-zap, sqlmap, gobuster, hydra, john, nikto\n' "$C_LGOLD" "$C_RESET"
             printf '  %s[2. Network & Routing]%s    nmap, wireshark, tshark, tcpdump, frr, iperf3, mtr, arp-scan, bpftool\n' "$C_LGOLD" "$C_RESET"

@@ -568,17 +568,17 @@ def build_vmware_manual_docx(root: Path, mockups_dir: Path, artifact_dir: Path, 
             [
                 "1. THMD-Guru ATTT 1.0\n(thmd-guru-attt-1.0-genesis-amd64.iso)",
                 "VM1 (192.168.80.10)\nMáy quét bảo mật Web OWASP ZAP",
-                "Link: https://github.com/DangTran1709/thmd-guru-os-forge/releases/download/v1.0.0-genesis/thmd-guru-attt-1.0-genesis-amd64.iso\nSHA256: 66a330f557e08e3c2aef921c778f210a36312456c07ddf892c4995c27a2f5254",
+                "Link: https://github.com/DangTran1709/thmd-guru-os-forge/releases/download/v1.0.0-genesis/thmd-guru-attt-1.0-genesis-amd64.iso\nSHA256: dcd2d4f246e9c537f9c6999c8dc705c6c8dabbb05223c168a3e60f1f87c04bbf",
             ],
             [
                 "2. THMD-Guru Server 1.0\n(thmd-guru-server-1.0-genesis-amd64.iso)",
                 "VM2 (192.168.80.20)\nWeb Server Mục tiêu (Nginx, DVWA, Juice Shop)",
-                "Link: https://github.com/DangTran1709/thmd-guru-os-forge/releases/download/v1.0.0-genesis/thmd-guru-server-1.0-genesis-amd64.iso\nSHA256: d86da5eb0a1fb616262d14dc75fb5e7d304278033c14f5abaef8eb1c36e661b3",
+                "Link: https://github.com/DangTran1709/thmd-guru-os-forge/releases/download/v1.0.0-genesis/thmd-guru-server-1.0-genesis-amd64.iso\nSHA256: 57dedfeab9bd26659569db852a1a346bf097cd9a48a3992cffb3eb712499e82e",
             ],
             [
                 "3. THMD-Guru Desktop 1.0\n(thmd-guru-desktop-1.0-genesis-amd64.iso)",
                 "VM3 (192.168.80.30)\nMáy chủ AI-RAG (FastAPI, Qdrant, Ollama)",
-                "Link: https://github.com/DangTran1709/thmd-guru-os-forge/releases/download/v1.0.0-genesis/thmd-guru-desktop-1.0-genesis-amd64.iso\nSHA256: e9ff09ad6abef448e2f98756a2c634aceaf88fd70159deb26b9375bfc5f91e66",
+                "Link: https://github.com/DangTran1709/thmd-guru-os-forge/releases/download/v1.0.0-genesis/thmd-guru-desktop-1.0-genesis-amd64.iso\nSHA256: c1dea2dd657b566468ab71948744a245b8b1ff5e41b48278870e242069b86c20",
             ],
         ],
     )
@@ -657,14 +657,14 @@ def build_vmware_manual_docx(root: Path, mockups_dir: Path, artifact_dir: Path, 
     )
     add_para(
         doc,
-        "Chọn mục số 1 'THMD-Guru Linux 1.0 (Genesis) — Live System'. Hệ điều hành khởi động thẳng vào bộ nhớ RAM trong chưa đầy 5 giây, nạp sẵn công cụ THMD-guru-ai và toàn bộ kịch bản phòng Lab tại /usr/share/thmd-guru/labs/ mà không cần chờ phân vùng ổ cứng.",
+        "Chọn mục số 1 'THMD-Guru Linux 1.0 (Genesis) - Live System'. Hệ điều hành khởi động thẳng vào bộ nhớ RAM trong chưa đầy 5 giây (hỗ trợ cả BIOS và UEFI), tự động khởi tạo udev/devtmpfs, nạp sẵn công cụ THMD-guru-ai và toàn bộ kịch bản phòng Lab tại /usr/share/thmd-guru/labs/ mà không cần chờ phân vùng ổ cứng.",
         "Phương thức A — Khởi động tức thời (Live RAM OS < 5 giây): ",
         bullet=True,
     )
     add_para(
         doc,
-        "Chọn mục số 2 'Graphical Installer (Calamares / Preseed)' trên bản Full Production ISO để cài đặt cố định hệ điều hành lên ổ cứng ảo (/dev/nvme0n1 hoặc /dev/sda) theo 4 giai đoạn trực quan dưới đây:",
-        "Phương thức B — Cài đặt cố định vào ổ cứng máy ảo (Calamares Installer): ",
+        "Chọn mục số 2 'Install & VMware Lab Wizard' (trình hướng dẫn thmd-installer cho phép gán tự động IP tĩnh 192.168.80.10 / .20 / .30 bằng 1 phím bấm 1/2/3 trên mạng VMnet2 không có DHCP) hoặc chạy bộ cài đồ họa Calamares trên bản Full Production ISO theo 4 giai đoạn trực quan dưới đây:",
+        "Phương thức B — Trình hướng dẫn Cài đặt & Cấu hình Phòng Lab (thmd-installer / Calamares): ",
         bullet=True,
     )
 
@@ -866,8 +866,11 @@ def build_vmware_manual_docx(root: Path, mockups_dir: Path, artifact_dir: Path, 
 
     for out_p in out_docx_paths:
         out_p.parent.mkdir(parents=True, exist_ok=True)
-        doc.save(str(out_p))
-        print(f"[VMware Guide Builder] Saved Word manual: {out_p} ({out_p.stat().st_size:,} bytes)")
+        try:
+            doc.save(str(out_p))
+            print(f"[VMware Guide Builder] Saved Word manual: {out_p} ({out_p.stat().st_size:,} bytes)")
+        except PermissionError:
+            print(f"[VMware Guide Builder] Skipped locked file (currently open in Word): {out_p}")
 
 
 def main():
@@ -902,3 +905,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

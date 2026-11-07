@@ -57,7 +57,8 @@ elif command -v nmcli >/dev/null 2>&1 && systemctl is-active --quiet NetworkMana
         ipv4.dns "$DNS" ipv4.dns-search thmd.lab ipv6.method disabled autoconnect yes >/dev/null
     nmcli con up "$CON" >/dev/null
 else
-    # Debian ifupdown / THMD-Guru Server
+    # Debian ifupdown / THMD-Guru Server / Live RAM OS
+    mkdir -p /etc/network/interfaces.d
     cat > /etc/network/interfaces.d/60-thmd-lab <<EOF
 auto $IFACE
 iface $IFACE inet static
@@ -65,8 +66,13 @@ iface $IFACE inet static
     gateway $GW
     dns-nameservers $DNS
 EOF
+    ip link set "$IFACE" up 2>/dev/null || true
+    ip addr flush dev "$IFACE" 2>/dev/null || true
+    ip addr add "$IP/$PREFIX" dev "$IFACE" 2>/dev/null || true
+    ip route replace default via "$GW" dev "$IFACE" 2>/dev/null || true
+    echo "nameserver $DNS" > /etc/resolv.conf 2>/dev/null || true
     ifdown "$IFACE" 2>/dev/null || true
-    ifup "$IFACE"
+    ifup "$IFACE" 2>/dev/null || true
 fi
 
 mkdir -p /etc/thmd-guru

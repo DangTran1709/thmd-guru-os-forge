@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-THMD-Guru OS Forge — Hybrid UEFI/BIOS Bootable ISO-9660 + Rock Ridge + CPIO Initramfs Builder
+THMD-Guru OS Forge - Hybrid UEFI/BIOS Bootable ISO-9660 + Rock Ridge + CPIO Initramfs Builder
 Builds standalone, bootable Hybrid ISO images (~68 MB each) for all 3 editions:
   - thmd-guru-desktop-1.0-genesis-amd64.iso
   - thmd-guru-server-1.0-genesis-amd64.iso
@@ -217,13 +217,10 @@ def build_thmd_cpio_overlay_gz(root_dir: Path, edition: str) -> bytes:
     ]:
         add_dir(d)
 
-    # Compatibility helpers so `#!/usr/bin/env bash` works in BusyBox initramfs (ASH_STANDALONE)
+    # Compatibility helper so `#!/usr/bin/env bash` works in BusyBox initramfs
+    # Note: Do NOT overwrite `usr/bin/env` because in Debian initrd.gz `usr/bin/env` is a symlink
+    # to `/bin/busybox`, which natively handles `#!/usr/bin/env bash` once `/bin/bash` exists!
     add_file("bin/bash", b"#!/bin/sh\nexec /bin/sh \"$@\"\n", executable=True)
-    add_file(
-        "usr/bin/env",
-        b"#!/bin/sh\nif [ \"${1:-}\" = \"bash\" ]; then shift; exec /bin/sh \"$@\"; fi\nexec \"$@\"\n",
-        executable=True,
-    )
 
     # Core OS identity files & MITRE ATT&CK Auditd Rules
     for rel in [
@@ -277,18 +274,21 @@ def build_thmd_cpio_overlay_gz(root_dir: Path, edition: str) -> bytes:
             executable=True,
         )
 
-    # Lab definitions
+    # Lab definitions (recursively include all subdirectories and scripts, e.g. vmware-zap-rag-pfsense/*)
     labs_root = root_dir / "packages/guru-cli/labs"
     if labs_root.exists():
-        for lab_dir in sorted(labs_root.iterdir()):
-            if lab_dir.is_dir():
-                add_dir(f"usr/share/thmd-guru/labs/{lab_dir.name}")
-                for lf in sorted(lab_dir.iterdir()):
-                    if lf.is_file():
-                        add_file(
-                            f"usr/share/thmd-guru/labs/{lab_dir.name}/{lf.name}",
-                            lf.read_bytes().replace(b"\r\n", b"\n"),
-                        )
+        for item in sorted(labs_root.rglob("*")):
+            rel_lab = item.relative_to(labs_root).as_posix()
+            dest_path = f"usr/share/thmd-guru/labs/{rel_lab}"
+            if item.is_dir():
+                add_dir(dest_path)
+            elif item.is_file():
+                is_exec = item.suffix in (".sh", ".py")
+                add_file(
+                    dest_path,
+                    item.read_bytes().replace(b"\r\n", b"\n"),
+                    executable=is_exec,
+                )
 
     # Debian Installer finish-install hook to automatically convert target disk into THMD-Guru Linux
     finish_hook = b"""#!/bin/sh
@@ -302,6 +302,93 @@ fi
 """
     add_file("usr/lib/finish-install.d/90thmd-guru", finish_hook, executable=True)
 
+    # Interactive THMD-Guru Installer & VMware Lab Node Provisioner (`/usr/bin/thmd-installer`)
+    thmd_installer = f"""#!/bin/sh
+# THMD-Guru Linux 1.0 "Genesis" ({edition.upper()}) - Interactive OS Installer & VMware Lab Wizard
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+persist_to_disk() {{
+    DISK_DEV=""
+    for cand in /dev/sda /dev/vda /dev/nvme0n1; do
+        if [ -b "$cand" ]; then
+            DISK_DEV="$cand"
+            break
+        fi
+    done
+    echo ""
+    echo "========================================================================"
+    echo "  THMD-GURU LINUX 1.0 ({edition.upper()}) - PERSISTENT SYSTEM & DISK INSTALLER"
+    echo "========================================================================"
+    if [ -n "$DISK_DEV" ]; then
+        echo "[OK] Detected Virtual Hard Disk: $DISK_DEV"
+    else
+        echo "[INFO] Running in RAM Disk Mode (no block disk detected, configuring Live RootFS)."
+    fi
+    if [ -d /cdrom/thmd-guru/rootfs ]; then
+        echo "[1/3] Applying THMD-Guru RootFS Overlay & Identity (/etc/os-release, sysctl, auditd)..."
+        cp -rf /cdrom/thmd-guru/rootfs/. / 2>/dev/null || true
+    fi
+    echo "[2/3] Applying CIS / KSPP Kernel Hardening & Edition Sysctl Profiles ({edition})..."
+    /bin/sh /usr/bin/THMD-guru-ai harden --apply
+    echo "[3/3] Verifying THMD-Guru Edition Plugins & Lab Modules..."
+    /bin/sh /usr/bin/THMD-guru-ai plugins
+    /bin/sh /usr/bin/THMD-guru-ai lab list
+    echo ""
+    echo "[SUCCESS] THMD-Guru Linux 1.0 ({edition.upper()}) configured and active!"
+}}
+
+while true; do
+    echo ""
+    echo "========================================================================"
+    echo "  THMD-GURU LINUX 1.0 (GENESIS) [{edition.upper()}] - INSTALLER & LAB WIZARD"
+    echo "  THMD-Guru Global Tech Academy | Learn Deep. Build Real. Secure Everything."
+    echo "========================================================================"
+    echo "  [1] Configure VM1 (ATTT + OWASP ZAP)   -> IP 192.168.80.10/24 (VMnet2)"
+    echo "  [2] Configure VM2 (Web Target Server)  -> IP 192.168.80.20/24 (VMnet2)"
+    echo "  [3] Configure VM3 (AI-RAG Server)      -> IP 192.168.80.30/24 (VMnet2)"
+    echo "  [4] Install / Apply THMD-Guru OS Overlay & Hardening to System"
+    echo "  [5] Run NCKH Benchmark (vmware-zap-rag-pfsense: ZAP vs LLM vs AI+RAG)"
+    echo "  [0] Exit to THMD-guru-ai Root Shell (root@guru-{edition})"
+    echo "------------------------------------------------------------------------"
+    printf "Select option [0-5] (or press ENTER for [0] Root Shell): "
+    read -r ans || break
+    case "${{ans:-0}}" in
+        1)
+            persist_to_disk
+            /bin/sh /usr/bin/THMD-guru-ai vm-node init lab80-vm1
+            /bin/sh /usr/bin/THMD-guru-ai status
+            break
+            ;;
+        2)
+            persist_to_disk
+            /bin/sh /usr/bin/THMD-guru-ai vm-node init lab80-vm2
+            /bin/sh /usr/bin/THMD-guru-ai status
+            break
+            ;;
+        3)
+            persist_to_disk
+            /bin/sh /usr/bin/THMD-guru-ai vm-node init lab80-vm3
+            /bin/sh /usr/bin/THMD-guru-ai status
+            break
+            ;;
+        4)
+            persist_to_disk
+            break
+            ;;
+        5)
+            /bin/sh /usr/bin/THMD-guru-ai lab run vmware-zap-rag-pfsense
+            ;;
+        0|"")
+            break
+            ;;
+        *)
+            echo "Invalid choice: $ans"
+            ;;
+    esac
+done
+""".encode("utf-8")
+    add_file("usr/bin/thmd-installer", thmd_installer, executable=True)
+
     # Preseed configuration
     preseed_src = root_dir / "editions/server/includes.binary/preseed/thmd-guru-server.cfg"
     if preseed_src.exists():
@@ -309,30 +396,71 @@ fi
 
     # Live OS Init Script (`/bin/thmd-guru-live`)
     live_init = f"""#!/bin/sh
-# THMD-Guru Linux 1.0 "Genesis" ({edition.upper()}) — Live OS Init & Self-Test Runner
+# THMD-Guru Linux 1.0 "Genesis" ({edition.upper()}) - Live OS Init & Self-Test Runner
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 export HOME="/root"
 export USER="root"
-export TERM="vt102"
+export TERM="linux"
 
-mkdir -p /proc /sys /dev /dev/pts /run /tmp /cdrom /root
+echo "[THMD-Guru Linux 1.0 ({edition.upper()})] Initializing kernel, devtmpfs & VMware drivers..." > /dev/console 2>/dev/null || true
+
+mkdir -p /run /run/lock /proc /sys /dev /dev/pts /tmp /cdrom /root /target
+mount -t tmpfs tmpfs /run 2>/dev/null || true
+mkdir -p /run/lock
 mount -t proc proc /proc 2>/dev/null || true
 mount -t sysfs sysfs /sys 2>/dev/null || true
-mount -t devpts devpts /dev/pts 2>/dev/null || true
+
+# CRITICAL: Mount devtmpfs on /dev BEFORE accessing /dev/tty0, /dev/tty1, /dev/ttyS0, /dev/sr0
+if ! grep -q " /dev devtmpfs" /proc/mounts 2>/dev/null; then
+    mount -n -o mode=0755 -t devtmpfs devtmpfs /dev 2>/dev/null || true
+fi
+[ ! -h /dev/fd ] && ln -s /proc/self/fd /dev/fd 2>/dev/null || true
+[ ! -h /dev/stdin ] && ln -s /proc/self/fd/0 /dev/stdin 2>/dev/null || true
+[ ! -h /dev/stdout ] && ln -s /proc/self/fd/1 /dev/stdout 2>/dev/null || true
+[ ! -h /dev/stderr ] && ln -s /proc/self/fd/2 /dev/stderr 2>/dev/null || true
+
+mkdir -p /dev/pts
+mount -t devpts -o noexec,nosuid,gid=5,mode=0620 devpts /dev/pts 2>/dev/null || true
 mount -t tmpfs tmpfs /tmp 2>/dev/null || true
 
+# Start udevd & trigger hardware discovery (loads VMware/QEMU display, storage, CD-ROM, USB, network drivers)
+if [ -x /lib/systemd/systemd-udevd ]; then
+    SYSTEMD_LOG_LEVEL=err /lib/systemd/systemd-udevd --daemon --resolve-names=never 2>/dev/null || true
+    udevadm trigger --action=add 2>/dev/null || true
+    udevadm settle --timeout=3 2>/dev/null || true
+elif [ -x /lib/debian-installer/start-udev ]; then
+    /lib/debian-installer/start-udev >/dev/null 2>&1 || true
+fi
+
+for mod in fbcon vesafb efifb vga16fb bochs cirrus virtio_gpu \\
+           usbhid hid_generic hid ehci_hcd ehci_pci xhci_hcd xhci_pci uhci_hcd ohci_hcd \\
+           sr_mod cdrom isofs sd_mod ata_piix ahci vmw_pvscsi virtio_blk virtio_scsi nvme \\
+           e1000 e1000e vmxnet3 virtio_net ext4; do
+    modprobe "$mod" 2>/dev/null || true
+done
+
 # Mount ISO-9660 CD-ROM if available
-for dev in /dev/sr0 /dev/cdrom /dev/hdc /dev/sda; do
+for dev in /dev/sr0 /dev/cdrom /dev/hdc /dev/sda /dev/sdb; do
     if [ -b "$dev" ]; then
         mount -t iso9660 -o ro "$dev" /cdrom 2>/dev/null && break || true
     fi
 done
 
+if [ -d /cdrom/thmd-guru/rootfs ]; then
+    cp -rf /cdrom/thmd-guru/rootfs/. / 2>/dev/null || true
+fi
+
 hostname "guru-{edition}" 2>/dev/null || true
 ip link set lo up 2>/dev/null || true
+for iface in $(ip -o link show 2>/dev/null | awk -F': ' '$2 != "lo" {{print $2}}' | cut -d@ -f1); do
+    ip link set "$iface" up 2>/dev/null || true
+done
 
 # Apply THMD-Guru Kernel sysctl hardening & edition tuning
 /usr/bin/guru harden --apply >/dev/null 2>&1 || true
+
+# Disable kernel printk noise on interactive console
+echo "3 4 1 3" > /proc/sys/kernel/printk 2>/dev/null || true
 
 CMDLINE="$(cat /proc/cmdline 2>/dev/null || true)"
 
@@ -348,31 +476,56 @@ run_welcome_banner() {{
     echo ""
     /bin/sh /usr/bin/guru plugins
     echo ""
+    echo "============================================================================"
+    echo "  QUICK COMMANDS (THMD-Guru Linux 1.0 - {edition.upper()} Edition):"
+    echo "    THMD-guru-ai help                           # Full CLI guide"
+    echo "    THMD-guru-ai vm-node init lab80-vm1         # IP 192.168.80.10/24 (VM1)"
+    echo "    THMD-guru-ai vm-node init lab80-vm2         # IP 192.168.80.20/24 (VM2)"
+    echo "    THMD-guru-ai vm-node init lab80-vm3         # IP 192.168.80.30/24 (VM3)"
+    echo "    THMD-guru-ai lab run vmware-zap-rag-pfsense # Run NCKH ZAP+RAG Lab"
+    echo "    thmd-installer                              # OS & VMware Lab Wizard"
+    echo "============================================================================"
+    echo ""
 }}
 
 if echo "$CMDLINE" | grep -q "thmd_autotest=1"; then
-    run_welcome_banner > /dev/tty0 2>&1 || true
-    run_welcome_banner > /dev/ttyS0 2>&1 || true
-    echo "[THMD-GURU-QEMU-BOOT-TEST-PASSED:{edition}]" > /dev/ttyS0 2>&1 || true
-    echo "[THMD-GURU-QEMU-BOOT-TEST-PASSED:{edition}]" > /dev/tty0 2>&1 || true
+    [ -c /dev/tty0 ] && run_welcome_banner > /dev/tty0 2>&1 || true
+    [ -c /dev/ttyS0 ] && run_welcome_banner > /dev/ttyS0 2>&1 || true
+    [ -c /dev/ttyS0 ] && echo "[THMD-GURU-QEMU-BOOT-TEST-PASSED:{edition}]" > /dev/ttyS0 2>&1 || true
+    [ -c /dev/tty0 ] && echo "[THMD-GURU-QEMU-BOOT-TEST-PASSED:{edition}]" > /dev/tty0 2>&1 || true
     sync
     poweroff -f 2>/dev/null || reboot -f
     exit 0
 fi
 
-for tty_dev in /dev/tty0 /dev/ttyS0; do
-    if [ -c "$tty_dev" ]; then
-        run_welcome_banner > "$tty_dev" 2>&1 || true
-        echo "Type 'guru help' for THMD-Guru Academy commands, or '/cdrom/install-thmd-guru.sh' to install." > "$tty_dev" 2>&1 || true
-    fi
-done
+PRIMARY_TTY="/dev/console"
+if [ -c /dev/tty1 ]; then
+    PRIMARY_TTY="/dev/tty1"
+elif [ -c /dev/tty0 ]; then
+    PRIMARY_TTY="/dev/tty0"
+fi
+
+if [ -c "$PRIMARY_TTY" ]; then
+    run_welcome_banner > "$PRIMARY_TTY" 2>&1 || true
+fi
+if [ -c /dev/ttyS0 ] && [ "$PRIMARY_TTY" != "/dev/ttyS0" ]; then
+    run_welcome_banner > /dev/ttyS0 2>&1 || true
+fi
+
+if echo "$CMDLINE" | grep -q "thmd_mode=install"; then
+    /usr/bin/thmd-installer < "$PRIMARY_TTY" > "$PRIMARY_TTY" 2>&1 || true
+fi
 
 export PS1="[THMD-Guru:{edition}] root@guru-{edition}:~# "
-if [ -c /dev/ttyS0 ]; then
+if [ -c /dev/ttyS0 ] && [ "$PRIMARY_TTY" != "/dev/ttyS0" ]; then
     (while true; do /bin/sh -i < /dev/ttyS0 > /dev/ttyS0 2>&1 || true; sleep 1; done) &
 fi
 while true; do
-    /bin/sh -i < /dev/tty0 > /dev/tty0 2>&1 || /bin/sh -i < /dev/console > /dev/console 2>&1 || true
+    if command -v setsid >/dev/null 2>&1 && [ -c "$PRIMARY_TTY" ]; then
+        setsid -c /bin/sh -i < "$PRIMARY_TTY" > "$PRIMARY_TTY" 2>&1 || /bin/sh -i < "$PRIMARY_TTY" > "$PRIMARY_TTY" 2>&1 || true
+    else
+        /bin/sh -i < "$PRIMARY_TTY" > "$PRIMARY_TTY" 2>&1 || /bin/sh -i < /dev/console > /dev/console 2>&1 || true
+    fi
     sleep 1
 done
 """.encode("utf-8")
@@ -463,7 +616,7 @@ menu tabmsg THMD-Guru Global Tech Academy | [ENTER] Boot   [TAB] Edit Kernel Opt
 """
     (work_iso / "stdmenu.cfg").write_text(stdmenu_cfg, encoding="utf-8", newline="\n")
 
-    isolinux_cfg = f"""# THMD-Guru Linux 1.0 (Genesis) — BIOS ISOLINUX Configuration
+    isolinux_cfg = f"""# THMD-Guru Linux 1.0 (Genesis) - BIOS ISOLINUX Configuration
 path 
 prompt 0
 timeout 50
@@ -478,72 +631,98 @@ label live
     menu label ^1. THMD-Guru Linux 1.0 ({ed_upper}) - Live System (RAM OS)
     menu default
     kernel /linux
-    append init=/bin/thmd-guru-live console=ttyS0,115200n8 console=tty0 initrd=/initrd.gz --- quiet
+    append vga=normal fb=false init=/bin/thmd-guru-live console=ttyS0,115200n8 console=tty0 initrd=/initrd.gz --- quiet
 
 label install
-    menu label ^2. THMD-Guru Linux 1.0 ({ed_upper}) - Install Operating System
+    menu label ^2. THMD-Guru Linux 1.0 ({ed_upper}) - Install & VMware Lab Wizard
     kernel /linux
-    append vga=788 preseed/file=/preseed.cfg initrd=/initrd.gz --- quiet
+    append vga=normal fb=false init=/bin/thmd-guru-live thmd_mode=install console=ttyS0,115200n8 console=tty0 initrd=/initrd.gz --- quiet
 
 label safe
     menu label ^3. THMD-Guru Linux 1.0 ({ed_upper}) - Safe Mode (nomodeset)
     kernel /linux
-    append init=/bin/thmd-guru-live nomodeset console=ttyS0,115200n8 console=tty0 initrd=/initrd.gz ---
+    append vga=normal fb=false nomodeset init=/bin/thmd-guru-live console=ttyS0,115200n8 console=tty0 initrd=/initrd.gz ---
 
 label forensic
     menu label ^4. THMD-Guru Linux 1.0 ({ed_upper}) - Forensic Mode (No Swap/Mount)
     kernel /linux
-    append init=/bin/thmd-guru-live noswap noautomount console=ttyS0,115200n8 console=tty0 initrd=/initrd.gz ---
+    append vga=normal fb=false noswap noautomount init=/bin/thmd-guru-live console=ttyS0,115200n8 console=tty0 initrd=/initrd.gz ---
 
 label autotest
     menu label ^5. THMD-Guru Linux 1.0 ({ed_upper}) - Automated Self-Test Mode
     kernel /linux
-    append init=/bin/thmd-guru-live thmd_autotest=1 console=ttyS0,115200n8 console=tty0 initrd=/initrd.gz --- quiet
+    append vga=normal fb=false init=/bin/thmd-guru-live thmd_autotest=1 console=ttyS0,115200n8 console=tty0 initrd=/initrd.gz --- quiet
+
+label netinstall
+    menu label ^6. THMD-Guru Linux 1.0 ({ed_upper}) - Debian Netboot Installer (Preseed)
+    kernel /linux
+    append vga=normal fb=false preseed/file=/preseed.cfg initrd=/initrd.gz --- quiet
 """
     (work_iso / "isolinux.cfg").write_text(isolinux_cfg, encoding="utf-8", newline="\n")
     (work_iso / "txt.cfg").write_text(isolinux_cfg, encoding="utf-8", newline="\n")
 
-    grub_cfg = f"""# THMD-Guru Linux 1.0 (Genesis) — UEFI GRUB2 Configuration
+    grub_cfg = f"""# THMD-Guru Linux 1.0 (Genesis) - UEFI GRUB2 Configuration
 set default=0
 set timeout=5
 
+insmod all_video
+insmod efi_gop
+insmod efi_uga
+insmod video_bochs
+insmod video_cirrus
+insmod font
+insmod gfxterm
+insmod png
+
 if loadfont /boot/grub/font.pf2 ; then
-  set gfxmode=800x600
+  set gfxmode=800x600,auto
   set gfxpayload=keep
-  insmod efi_gop
-  insmod efi_uga
-  insmod video_bochs
-  insmod video_cirrus
-  insmod gfxterm
-  insmod png
   terminal_output gfxterm
 fi
 
-set menu_color_normal=light-gray/blue
-set menu_color_highlight=yellow/blue
+if background_image /splash.png; then
+  set color_normal=light-gray/black
+  set color_highlight=yellow/black
+  set menu_color_normal=light-gray/black
+  set menu_color_highlight=yellow/blue
+else
+  set menu_color_normal=light-gray/blue
+  set menu_color_highlight=yellow/blue
+fi
 
-menuentry "1. THMD-Guru Linux 1.0 (Genesis) [{ed_upper}] — Live System" {{
+menuentry "1. THMD-Guru Linux 1.0 (Genesis) [{ed_upper}] - Live System (RAM OS)" {{
+    set gfxpayload=keep
     linux  /linux init=/bin/thmd-guru-live console=ttyS0,115200n8 console=tty0 --- quiet
     initrd /initrd.gz
 }}
 
-menuentry "2. THMD-Guru Linux 1.0 (Genesis) [{ed_upper}] — Install Operating System" {{
-    linux  /linux vga=788 preseed/file=/preseed.cfg --- quiet
+menuentry "2. THMD-Guru Linux 1.0 (Genesis) [{ed_upper}] - Install & VMware Lab Wizard" {{
+    set gfxpayload=keep
+    linux  /linux init=/bin/thmd-guru-live thmd_mode=install console=ttyS0,115200n8 console=tty0 --- quiet
     initrd /initrd.gz
 }}
 
-menuentry "3. THMD-Guru Linux 1.0 (Genesis) [{ed_upper}] — Safe Mode (nomodeset)" {{
+menuentry "3. THMD-Guru Linux 1.0 (Genesis) [{ed_upper}] - Safe Mode (nomodeset)" {{
+    set gfxpayload=keep
     linux  /linux init=/bin/thmd-guru-live nomodeset console=ttyS0,115200n8 console=tty0 ---
     initrd /initrd.gz
 }}
 
-menuentry "4. THMD-Guru Linux 1.0 (Genesis) [{ed_upper}] — Forensic Mode (No Automount / No Swap)" {{
+menuentry "4. THMD-Guru Linux 1.0 (Genesis) [{ed_upper}] - Forensic Mode (No Automount / No Swap)" {{
+    set gfxpayload=keep
     linux  /linux init=/bin/thmd-guru-live noswap noautomount console=ttyS0,115200n8 console=tty0 ---
     initrd /initrd.gz
 }}
 
-menuentry "5. THMD-Guru Linux 1.0 (Genesis) [{ed_upper}] — Automated Self-Test Mode" {{
+menuentry "5. THMD-Guru Linux 1.0 (Genesis) [{ed_upper}] - Automated Self-Test Mode" {{
+    set gfxpayload=keep
     linux  /linux init=/bin/thmd-guru-live thmd_autotest=1 console=ttyS0,115200n8 console=tty0 --- quiet
+    initrd /initrd.gz
+}}
+
+menuentry "6. THMD-Guru Linux 1.0 (Genesis) [{ed_upper}] - Debian Netboot Installer (Preseed)" {{
+    set gfxpayload=keep
+    linux  /linux fb=false preseed/file=/preseed.cfg --- quiet
     initrd /initrd.gz
 }}
 """
@@ -587,7 +766,7 @@ class IsoNode:
 def make_rock_ridge_susp(name: str, is_dir: bool, is_root_self: bool = False, is_dot: bool = False) -> bytes:
     susp = bytearray()
     if is_root_self:
-        # SP System Use Sharing Protocol indicator
+        # SP System Use Sharing Protocol indicator (7 bytes)
         susp.extend(b"SP\x07\x01\xbe\xef\x00")
     mode = 0o040755 if is_dir else 0o100755
     nlink = 2 if is_dir else 1
@@ -598,6 +777,9 @@ def make_rock_ridge_susp(name: str, is_dir: bool, is_root_self: bool = False, is
     px.extend(both_32(0))
     px.extend(both_32(0))
     susp.extend(px)
+    if is_root_self:
+        # ER Extensions Reference (18 bytes) - required by GRUB2 (efi.img) & Linux isofs to enable Rock Ridge!
+        susp.extend(b"ER\x12\x01\x0a\x00\x00\x01RRIP_1991A")
     if not is_dot and name:
         nb = name.encode("utf-8")[:200]
         nm_len = 5 + len(nb)
@@ -754,6 +936,8 @@ def build_bootable_iso9660(
             else:
                 node.size = entry.stat().st_size
                 all_files.append(node)
+        # ISO-9660 Section 9.3 requires directory records to be sorted by ASCII identifier
+        dir_node.children.sort(key=lambda n: n.iso_name.split(";")[0])
 
     walk_tree(root, source_dir, "")
 
@@ -968,14 +1152,14 @@ def stage_and_build_edition(
     installer_sh = work_iso / "install-thmd-guru.sh"
     installer_sh.write_text(
         f"""#!/usr/bin/env bash
-# THMD-Guru Linux 1.0 (Genesis) — Edition: {edition.upper()}
+# THMD-Guru Linux 1.0 (Genesis) - Edition: {edition.upper()}
 # Automated In-Place & OEM ISO Installer for Debian 12 (Bookworm)
 set -euo pipefail
 
 ISO_ROOT="$(cd "$(dirname "${{BASH_SOURCE[0]}}")" && pwd)"
 echo "===================================================================="
-echo "  THMD-GURU LINUX 1.0 (GENESIS) — {edition.upper()} EDITION INSTALLER"
-echo "  THMD-Guru Global Tech Academy — Learn Deep. Build Real. Secure Everything."
+echo "  THMD-GURU LINUX 1.0 (GENESIS) - {edition.upper()} EDITION INSTALLER"
+echo "  THMD-Guru Global Tech Academy - Learn Deep. Build Real. Secure Everything."
 echo "===================================================================="
 
 if [[ "$(id -u)" -ne 0 ]]; then
