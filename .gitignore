@@ -8,3 +8,6 @@ out/
 *.changes
 packages/thmd-guru-branding/assets/
 packages/thmd-guru-branding/plymouth/
+
+__pycache__/
+*.pyc

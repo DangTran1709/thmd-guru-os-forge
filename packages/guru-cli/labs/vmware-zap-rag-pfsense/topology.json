@@ -1,0 +1,30 @@
+{
+  "lab": "vmware-zap-rag-pfsense",
+  "title": "Danh gia hieu qua AI ket hop RAG trong xac minh va uu tien canh bao bao mat Web tu ZAP",
+  "network": {
+    "lab_switch": "VMnet2",
+    "lab_type": "host-only",
+    "subnet": "192.168.80.0/24",
+    "netmask": "255.255.255.0",
+    "gateway": "192.168.80.1",
+    "dns": "192.168.80.1",
+    "host_adapter_ip": "192.168.80.254",
+    "wan_switch": "VMnet8"
+  },
+  "nodes": {
+    "pfsense": {"hostname": "lab-pfsense", "ip": "192.168.80.1", "vcpu": 1, "ram_gb": 1, "disk_gb": 16, "os": "pfSense CE 2.7.x"},
+    "vm1": {"hostname": "lab-vm1-kali-zap", "ip": "192.168.80.10", "vcpu": 2, "ram_gb": 3, "disk_gb": 40, "os": "Kali Linux / THMD-Guru ATTT", "role": "scanner"},
+    "vm2": {"hostname": "lab-vm2-web-target", "ip": "192.168.80.20", "vcpu": 2, "ram_gb": 4, "disk_gb": 40, "os": "Ubuntu Server / THMD-Guru Server", "role": "target"},
+    "vm3": {"hostname": "lab-vm3-ai-rag", "ip": "192.168.80.30", "vcpu": 3, "ram_gb": 4, "disk_gb": 60, "os": "Ubuntu Server / THMD-Guru Desktop", "role": "ai-rag"}
+  },
+  "allowed_scan_targets": ["192.168.80.20"],
+  "services": {
+    "zap_api": "http://127.0.0.1:8090",
+    "target_juice_shop": "http://192.168.80.20:3000",
+    "target_dvwa": "http://192.168.80.20:8081",
+    "target_webgoat": "http://192.168.80.20:8080/WebGoat",
+    "ai_rag_api": "http://192.168.80.30:8000",
+    "qdrant": "http://192.168.80.30:6333",
+    "ollama": "http://192.168.80.30:11434"
+  }
+}

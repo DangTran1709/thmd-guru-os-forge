@@ -1,0 +1,170 @@
+{
+  "metadata": {
+    "name": "THMD-Guru LAB KB: OWASP Top 10 2021, CWE, CVSS v3.1, OWASP WSTG v4.2 verification rules",
+    "version": "2.0.0",
+    "note": "tp_signals / fp_signals are machine-checkable regex rules applied to real ZAP evidence, request and response. Text fields are injected into the LLM prompt as RAG context and cited in reports."
+  },
+  "entries": [
+    {
+      "cwe_id": "CWE-89", "name": "SQL Injection", "owasp_top10": "A03:2021 - Injection", "wstg_id": "WSTG-INPV-05",
+      "cvss_base": 9.8, "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+      "tp_indicators": ["Database driver error text (SQLITE_ERROR, You have an error in your SQL syntax, ORA-, PG::SyntaxError) appears only with the injected payload", "Boolean/time-based difference confirmed between true and false payloads", "Authentication bypass returns a valid session or JWT"],
+      "fp_exclusion_rules": ["Generic HTTP 500 caused by type parsing (invalid integer, JSON parse) without any SQL driver trace", "Identical error page returned for any malformed input regardless of quote balance"],
+      "tp_signals": [
+        {"field": "body", "regex": "SQLITE_ERROR|SQL syntax|mysql_fetch|ORA-\\d{5}|PG::SyntaxError|SequelizeDatabaseError|unterminated quoted string|Warning: mysqli", "weight": 2.5, "desc": "SQL driver error in response"},
+        {"field": "body", "regex": "\"token\"\\s*:\\s*\"eyJ", "weight": 1.5, "desc": "JWT issued after injection payload"}
+      ],
+      "fp_signals": [
+        {"field": "body", "regex": "invalid (integer|input syntax for integer)|Unexpected token .* in JSON|NaN", "weight": 1.5, "desc": "Type-parsing error without SQL trace"}
+      ],
+      "remediation": "Use parameterized queries / bound ORM parameters; never concatenate user input into SQL.",
+      "sources": ["https://cwe.mitre.org/data/definitions/89.html", "OWASP WSTG v4.2 WSTG-INPV-05 Testing for SQL Injection"]
+    },
+    {
+      "cwe_id": "CWE-79", "name": "Cross-Site Scripting (Reflected / Stored / DOM)", "owasp_top10": "A03:2021 - Injection", "wstg_id": "WSTG-INPV-01",
+      "cvss_base": 6.1, "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
+      "tp_indicators": ["Payload reflected unescaped inside a text/html response in an executable context", "DOM sink (innerHTML, bypassSecurityTrustHtml, document.write) receives attacker-controlled data"],
+      "fp_exclusion_rules": ["Payload reflected HTML-entity encoded (&lt;script&gt;, &quot;)", "Payload reflected inside application/json with X-Content-Type-Options: nosniff"],
+      "tp_signals": [
+        {"special": "reflected_unescaped_html", "weight": 2.5, "desc": "Attack string reflected verbatim in text/html"}
+      ],
+      "fp_signals": [
+        {"special": "reflected_encoded", "weight": 2.0, "desc": "Attack string reflected HTML-encoded"},
+        {"field": "content_type", "regex": "application/json", "weight": 1.2, "desc": "Reflection inside JSON response"}
+      ],
+      "remediation": "Context-aware output encoding, avoid unsafe DOM sinks, strict Content-Security-Policy.",
+      "sources": ["https://cwe.mitre.org/data/definitions/79.html", "OWASP WSTG v4.2 WSTG-INPV-01 Testing for Reflected XSS"]
+    },
+    {
+      "cwe_id": "CWE-22", "name": "Path Traversal", "owasp_top10": "A01:2021 - Broken Access Control", "wstg_id": "WSTG-ATHZ-01",
+      "cvss_base": 7.5, "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+      "tp_indicators": ["Response contains content of a file outside the web root (/etc/passwd root:x:0:0, win.ini [fonts])"],
+      "fp_exclusion_rules": ["SPA fallback returns index.html with HTTP 200 for any path"],
+      "tp_signals": [{"field": "body", "regex": "root:x:0:0:|\\[fonts\\]|\\[extensions\\]", "weight": 3.0, "desc": "System file content disclosed"}],
+      "fp_signals": [{"field": "body", "regex": "<app-root|<div id=\"root\"></div>", "weight": 1.5, "desc": "SPA fallback page"}],
+      "remediation": "Canonicalize paths and enforce an allowlist of accessible files.",
+      "sources": ["https://cwe.mitre.org/data/definitions/22.html", "OWASP WSTG v4.2 WSTG-ATHZ-01 Testing Directory Traversal File Include"]
+    },
+    {
+      "cwe_id": "CWE-78", "name": "OS Command Injection", "owasp_top10": "A03:2021 - Injection", "wstg_id": "WSTG-INPV-12",
+      "cvss_base": 9.8, "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+      "tp_indicators": ["Output of injected OS command (uid=, root:x:0:0, directory listing) in response", "Measurable delay matching injected sleep"],
+      "fp_exclusion_rules": ["Response time variance without consistent correlation to injected delay"],
+      "tp_signals": [{"field": "body", "regex": "uid=\\d+\\([\\w-]+\\) gid=|root:x:0:0:", "weight": 3.0, "desc": "Command output in response"}],
+      "fp_signals": [],
+      "remediation": "Avoid shell invocation; use safe APIs with argument arrays and strict input validation.",
+      "sources": ["https://cwe.mitre.org/data/definitions/78.html", "OWASP WSTG v4.2 WSTG-INPV-12 Testing for Command Injection"]
+    },
+    {
+      "cwe_id": "CWE-352", "name": "Cross-Site Request Forgery / Absence of Anti-CSRF Tokens", "owasp_top10": "A01:2021 - Broken Access Control", "wstg_id": "WSTG-SESS-05",
+      "cvss_base": 6.5, "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:H/A:N",
+      "tp_indicators": ["State-changing form (POST) authenticated by cookie without anti-CSRF token or SameSite protection"],
+      "fp_exclusion_rules": ["Search or login forms that do not change server state", "APIs authenticated by Authorization: Bearer header instead of cookies"],
+      "tp_signals": [{"field": "body", "regex": "<form[^>]+method=[\"']?post", "weight": 0.8, "desc": "POST form present"}],
+      "fp_signals": [{"field": "body", "regex": "<form[^>]+(search|login)", "weight": 1.2, "desc": "Search/login form (no state change)"}, {"field": "request", "regex": "Authorization: Bearer", "weight": 1.5, "desc": "Bearer-token API, not cookie-based"}],
+      "remediation": "Synchronizer token or double-submit cookie; SameSite=Lax/Strict cookies.",
+      "sources": ["https://cwe.mitre.org/data/definitions/352.html", "OWASP WSTG v4.2 WSTG-SESS-05 Testing for CSRF"]
+    },
+    {
+      "cwe_id": "CWE-639", "name": "Insecure Direct Object Reference (IDOR)", "owasp_top10": "A01:2021 - Broken Access Control", "wstg_id": "WSTG-ATHZ-04",
+      "cvss_base": 8.1, "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:N",
+      "tp_indicators": ["HTTP 200 with another user's private object when the identifier is changed"],
+      "fp_exclusion_rules": ["Public catalog/product endpoints intended for unauthenticated reads"],
+      "tp_signals": [{"field": "body", "regex": "\"UserId\"\\s*:\\s*\\d+", "weight": 1.0, "desc": "Owner-scoped object returned"}],
+      "fp_signals": [{"field": "url", "regex": "/api/Products|/rest/products/search", "weight": 1.5, "desc": "Public catalog endpoint"}],
+      "remediation": "Server-side ownership check on every object access.",
+      "sources": ["https://cwe.mitre.org/data/definitions/639.html", "OWASP WSTG v4.2 WSTG-ATHZ-04 Testing for IDOR"]
+    },
+    {
+      "cwe_id": "CWE-918", "name": "Server-Side Request Forgery", "owasp_top10": "A10:2021 - SSRF", "wstg_id": "WSTG-INPV-19",
+      "cvss_base": 9.1, "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:N",
+      "tp_indicators": ["Content from loopback, link-local metadata (169.254.169.254) or internal subnet returned to client"],
+      "fp_exclusion_rules": ["Client-side redirect where the server never performs the outbound request"],
+      "tp_signals": [{"field": "body", "regex": "ami-id|instance-id|127\\.0\\.0\\.1|localhost:\\d+", "weight": 2.0, "desc": "Internal resource content"}],
+      "fp_signals": [{"field": "status", "regex": "^30[12378]$", "weight": 1.0, "desc": "Redirect only"}],
+      "remediation": "Allowlist outbound destinations; block RFC1918, loopback and link-local ranges.",
+      "sources": ["https://cwe.mitre.org/data/definitions/918.html", "OWASP WSTG v4.2 WSTG-INPV-19 Testing for SSRF"]
+    },
+    {
+      "cwe_id": "CWE-209", "name": "Application Error Disclosure / Stack Trace", "owasp_top10": "A05:2021 - Security Misconfiguration", "wstg_id": "WSTG-ERRH-01",
+      "cvss_base": 5.3, "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N",
+      "tp_indicators": ["Stack trace with file paths, framework versions or SQL fragments returned to client"],
+      "fp_exclusion_rules": ["Generic friendly error page without internal details"],
+      "tp_signals": [{"field": "body", "regex": "at [\\w.$]+\\(.*:\\d+:\\d+\\)|Traceback \\(most recent call last\\)|/var/www/|node_modules/|Exception in thread", "weight": 2.0, "desc": "Stack trace / internal path"}],
+      "fp_signals": [],
+      "remediation": "Disable verbose errors in production; log details server-side only.",
+      "sources": ["https://cwe.mitre.org/data/definitions/209.html", "OWASP WSTG v4.2 WSTG-ERRH-01 Testing for Improper Error Handling"]
+    },
+    {
+      "cwe_id": "CWE-200", "name": "Exposure of Sensitive Information (backup files, directories)", "owasp_top10": "A01:2021 - Broken Access Control", "wstg_id": "WSTG-CONF-04",
+      "cvss_base": 7.5, "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+      "tp_indicators": ["Backup/config file (.bak, .env, .git, package.json.bak, SQL dump) downloadable with real content"],
+      "fp_exclusion_rules": ["SPA fallback returning index.html with HTTP 200 for non-existent backup names"],
+      "tp_signals": [{"field": "body", "regex": "\"dependencies\"\\s*:|DB_PASSWORD|BEGIN RSA PRIVATE KEY|\\[core\\]\\s+repositoryformatversion|Index of /", "weight": 2.5, "desc": "Real sensitive content"}],
+      "fp_signals": [{"field": "body", "regex": "<app-root|<div id=\"root\"></div>", "weight": 2.0, "desc": "SPA fallback page"}],
+      "remediation": "Remove backup files from web root, block dotfiles at reverse proxy, disable directory listing.",
+      "sources": ["https://cwe.mitre.org/data/definitions/200.html", "OWASP WSTG v4.2 WSTG-CONF-04 Review Old Backup and Unreferenced Files"]
+    },
+    {
+      "cwe_id": "CWE-497", "name": "Server Version / Timestamp Disclosure", "owasp_top10": "A05:2021 - Security Misconfiguration", "wstg_id": "WSTG-INFO-02",
+      "cvss_base": 3.7, "cvss_vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N",
+      "tp_indicators": ["Exact server/framework version in Server or X-Powered-By header"],
+      "fp_exclusion_rules": ["Unix timestamps in static JS bundles or ETags that are not server time", "Generic Server header without version number"],
+      "tp_signals": [{"field": "response", "regex": "(Server|X-Powered-By): [\\w-]+/\\d+\\.\\d+", "weight": 1.5, "desc": "Versioned server banner"}],
+      "fp_signals": [{"field": "content_type", "regex": "javascript|font/|image/", "weight": 1.5, "desc": "Static asset"}],
+      "remediation": "Hide version banners (server_tokens off, expose_php Off, remove X-Powered-By).",
+      "sources": ["https://cwe.mitre.org/data/definitions/497.html", "OWASP WSTG v4.2 WSTG-INFO-02 Fingerprint Web Server"]
+    },
+    {
+      "cwe_id": "CWE-615", "name": "Suspicious Comments in Source", "owasp_top10": "A05:2021 - Security Misconfiguration", "wstg_id": "WSTG-INFO-05",
+      "cvss_base": 2.6, "cvss_vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:L/I:N/A:N",
+      "tp_indicators": ["Comment reveals credentials, internal hosts, TODO with security impact or hidden endpoints"],
+      "fp_exclusion_rules": ["Framework/library license headers and minified bundle keywords (e.g. 'select', 'from', 'user' inside vendor JS)"],
+      "tp_signals": [{"field": "evidence", "regex": "password|passwd|secret|api[_-]?key|TODO.*(auth|admin)", "weight": 1.5, "desc": "Security-relevant comment"}],
+      "fp_signals": [{"field": "url", "regex": "(vendor|main|polyfills|runtime|chunk)[.-]?[\\w]*\\.js", "weight": 1.5, "desc": "Minified framework bundle"}],
+      "remediation": "Strip comments in production builds; never store secrets in client code.",
+      "sources": ["https://cwe.mitre.org/data/definitions/615.html", "OWASP WSTG v4.2 WSTG-INFO-05 Review Webpage Content for Information Leakage"]
+    },
+    {
+      "cwe_id": "CWE-693", "name": "Missing Security Headers (CSP, X-Content-Type-Options)", "owasp_top10": "A05:2021 - Security Misconfiguration", "wstg_id": "WSTG-CONF-07",
+      "cvss_base": 4.3, "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:L/A:N",
+      "tp_indicators": ["Interactive HTML document missing Content-Security-Policy / X-Content-Type-Options"],
+      "fp_exclusion_rules": ["Static images, fonts, icons or redirects missing headers that only matter for HTML documents"],
+      "tp_signals": [{"field": "content_type", "regex": "text/html", "weight": 0.8, "desc": "Affects HTML document"}],
+      "fp_signals": [{"field": "content_type", "regex": "^(image/|font/)|woff|x-icon", "weight": 2.0, "desc": "Static asset"}, {"field": "status", "regex": "^30\\d$", "weight": 1.0, "desc": "Redirect response"}],
+      "remediation": "Set security headers globally at the reverse proxy for HTML responses.",
+      "sources": ["https://cwe.mitre.org/data/definitions/693.html", "OWASP WSTG v4.2 WSTG-CONF-07 Test HTTP Strict Transport Security / headers"]
+    },
+    {
+      "cwe_id": "CWE-1021", "name": "Clickjacking (Missing X-Frame-Options / frame-ancestors)", "owasp_top10": "A05:2021 - Security Misconfiguration", "wstg_id": "WSTG-CLNT-09",
+      "cvss_base": 4.3, "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:L/A:N",
+      "tp_indicators": ["Authenticated HTML page with state-changing actions can be framed"],
+      "fp_exclusion_rules": ["Non-HTML resources (images, JSON, fonts) missing X-Frame-Options"],
+      "tp_signals": [{"field": "content_type", "regex": "text/html", "weight": 0.8, "desc": "HTML page frameable"}],
+      "fp_signals": [{"field": "content_type", "regex": "^(image/|font/|application/json)", "weight": 2.0, "desc": "Not a frameable document"}],
+      "remediation": "X-Frame-Options: DENY or CSP frame-ancestors 'self'.",
+      "sources": ["https://cwe.mitre.org/data/definitions/1021.html", "OWASP WSTG v4.2 WSTG-CLNT-09 Testing for Clickjacking"]
+    },
+    {
+      "cwe_id": "CWE-319", "name": "Missing HSTS / Cleartext Transmission", "owasp_top10": "A02:2021 - Cryptographic Failures", "wstg_id": "WSTG-CONF-07",
+      "cvss_base": 3.7, "cvss_vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N",
+      "tp_indicators": ["HTTPS site without Strict-Transport-Security header"],
+      "fp_exclusion_rules": ["HSTS warning on a plain-HTTP-only lab service (HSTS only applies over HTTPS)"],
+      "tp_signals": [{"field": "url", "regex": "^https://", "weight": 1.0, "desc": "HTTPS endpoint"}],
+      "fp_signals": [{"field": "url", "regex": "^http://", "weight": 1.5, "desc": "Plain HTTP lab service"}],
+      "remediation": "Serve over HTTPS and add Strict-Transport-Security with an appropriate max-age.",
+      "sources": ["https://cwe.mitre.org/data/definitions/319.html", "OWASP WSTG v4.2 WSTG-CONF-07"]
+    },
+    {
+      "cwe_id": "CWE-1004", "name": "Cookie without HttpOnly / Secure / SameSite flag", "owasp_top10": "A05:2021 - Security Misconfiguration", "wstg_id": "WSTG-SESS-02",
+      "cvss_base": 4.3, "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:L/I:N/A:N",
+      "tp_indicators": ["Session/authentication cookie readable by JavaScript or sent cross-site"],
+      "fp_exclusion_rules": ["Non-sensitive preference cookies (language, cookieconsent, welcomebanner)"],
+      "tp_signals": [{"field": "response", "regex": "Set-Cookie: (PHPSESSID|JSESSIONID|token|session)", "weight": 1.5, "desc": "Session cookie"}],
+      "fp_signals": [{"field": "evidence", "regex": "language|cookieconsent|welcomebanner|security=low", "weight": 1.5, "desc": "Non-sensitive cookie"}],
+      "remediation": "Set HttpOnly, Secure and SameSite on session cookies.",
+      "sources": ["https://cwe.mitre.org/data/definitions/1004.html", "OWASP WSTG v4.2 WSTG-SESS-02 Testing for Cookies Attributes"]
+    }
+  ]
+}
+

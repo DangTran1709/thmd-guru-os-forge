@@ -1,0 +1,26 @@
+{
+  "metadata": {"name": "OWASP ZAP alert rule notes (subset)", "source": "https://www.zaproxy.org/docs/alerts/"},
+  "rules": [
+    {"plugin_id": "40018", "name": "SQL Injection", "cwe_id": "CWE-89", "fp_notes": "Often triggered by HTTP 500 on type errors; confirm driver error or boolean difference."},
+    {"plugin_id": "40024", "name": "SQL Injection - SQLite", "cwe_id": "CWE-89", "fp_notes": "Time-based variant; verify delay is reproducible."},
+    {"plugin_id": "40012", "name": "Cross Site Scripting (Reflected)", "cwe_id": "CWE-79", "fp_notes": "Check that payload is not encoded and response is text/html."},
+    {"plugin_id": "40014", "name": "Cross Site Scripting (Persistent)", "cwe_id": "CWE-79", "fp_notes": "Confirm stored payload executes on a later page."},
+    {"plugin_id": "6", "name": "Path Traversal", "cwe_id": "CWE-22", "fp_notes": "SPA catch-all routes return 200 for any path."},
+    {"plugin_id": "90020", "name": "Remote OS Command Injection", "cwe_id": "CWE-78", "fp_notes": "Time-based detection sensitive to load on target VM."},
+    {"plugin_id": "10202", "name": "Absence of Anti-CSRF Tokens", "cwe_id": "CWE-352", "fp_notes": "Frequently reported on search/login forms and token-authenticated APIs."},
+    {"plugin_id": "90022", "name": "Application Error Disclosure", "cwe_id": "CWE-209", "fp_notes": "Matches words like 'error' in normal content."},
+    {"plugin_id": "10036", "name": "Server Leaks Version Information via Server header", "cwe_id": "CWE-497", "fp_notes": "Low impact; confirm exact version is exposed."},
+    {"plugin_id": "10037", "name": "Server Leaks Information via X-Powered-By", "cwe_id": "CWE-497", "fp_notes": "Low impact."},
+    {"plugin_id": "10096", "name": "Timestamp Disclosure - Unix", "cwe_id": "CWE-497", "fp_notes": "Very high false-positive rate on numeric constants inside JS bundles."},
+    {"plugin_id": "10027", "name": "Information Disclosure - Suspicious Comments", "cwe_id": "CWE-615", "fp_notes": "Keyword match on minified vendor JS (select, from, user, admin)."},
+    {"plugin_id": "10038", "name": "Content Security Policy (CSP) Header Not Set", "cwe_id": "CWE-693", "fp_notes": "Only relevant for HTML documents."},
+    {"plugin_id": "10021", "name": "X-Content-Type-Options Header Missing", "cwe_id": "CWE-693", "fp_notes": "Reported on every static file; deduplicate."},
+    {"plugin_id": "10020", "name": "Missing Anti-clickjacking Header", "cwe_id": "CWE-1021", "fp_notes": "Irrelevant for images, JSON, fonts."},
+    {"plugin_id": "10035", "name": "Strict-Transport-Security Header Not Set", "cwe_id": "CWE-319", "fp_notes": "Only applies to HTTPS responses."},
+    {"plugin_id": "10010", "name": "Cookie No HttpOnly Flag", "cwe_id": "CWE-1004", "fp_notes": "Check whether the cookie is a session cookie."},
+    {"plugin_id": "10054", "name": "Cookie without SameSite Attribute", "cwe_id": "CWE-1275", "fp_notes": "Check whether the cookie is a session cookie."},
+    {"plugin_id": "10045", "name": "Source Code Disclosure - /WEB-INF folder", "cwe_id": "CWE-200", "fp_notes": "Confirm real file content."},
+    {"plugin_id": "40035", "name": "Hidden File Found", "cwe_id": "CWE-200", "fp_notes": "SPA fallback produces 200 for hidden names."}
+  ]
+}
+

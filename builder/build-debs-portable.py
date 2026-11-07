@@ -105,10 +105,12 @@ def main():
     }
     for lab_dir in sorted((root / "packages/guru-cli/labs").iterdir()):
         if lab_dir.is_dir():
-            for lf in sorted(lab_dir.iterdir()):
-                if lf.is_file():
+            # rglob: labs may contain nested per-VM folders (e.g. vmware-zap-rag-pfsense/vm1-kali-zap/)
+            for lf in sorted(lab_dir.rglob("*")):
+                if lf.is_file() and "__pycache__" not in lf.parts:
                     mode = 0o755 if lf.suffix in (".py", ".sh") else 0o644
-                    guru_files[f"usr/share/thmd-guru/labs/{lab_dir.name}/{lf.name}"] = (
+                    rel = lf.relative_to(lab_dir).as_posix()
+                    guru_files[f"usr/share/thmd-guru/labs/{lab_dir.name}/{rel}"] = (
                         lf.read_bytes().replace(b"\r\n", b"\n"),
                         mode,
                     )

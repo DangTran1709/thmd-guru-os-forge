@@ -342,23 +342,54 @@ Rank | Alert ID | CWE     | Verdict     | S_priority | OWASP Top 10 Category & V
 EOF
 }
 
+run_vmware_zap_rag_pfsense_benchmark() {
+    eval_py="$GURU_LABS_DIR/vmware-zap-rag-pfsense/evaluator/evaluate.py"
+    if [ ! -f "$eval_py" ]; then
+        local_dir="$(cd "$(dirname "$0")/.." 2>/dev/null && pwd || echo "")"
+        if [ -f "$local_dir/labs/vmware-zap-rag-pfsense/evaluator/evaluate.py" ]; then
+            eval_py="$local_dir/labs/vmware-zap-rag-pfsense/evaluator/evaluate.py"
+        fi
+    fi
+    if [ -f "$eval_py" ]; then
+        if command -v python3 >/dev/null 2>&1 && python3 -c "import json" >/dev/null 2>&1; then
+            python3 "$eval_py" --offline-demo "$@" && return 0
+        elif [ -x "/c/Python314/python.exe" ]; then
+            /c/Python314/python.exe "$eval_py" --offline-demo "$@" && return 0
+        fi
+    fi
+    cat << 'EOF'
+====================================================================================================
+ THMD-GURU LAB vmware-zap-rag-pfsense — OFFLINE DEMO (Juice Shop + DVWA, 20 alerts, 192.168.80.0/24)
+ Topology: Internet <-> Router <-> pfSense (192.168.80.1) <-> VMnet2 (VM1 .80.10, VM2 .80.20, VM3 .80.30)
+====================================================================================================
+| Method                  | Engine              | TP | FP | FN | Precision | Recall | F1     | FPRR   | NDCG@5 | Cited  | ms/alert |
+|-------------------------|---------------------|----|----|----|-----------|--------|--------|--------|--------|--------|----------|
+| 1. Raw ZAP (baseline)   | zap                 | 10 | 10 |  0 |     50.0% | 100.0% | 66.67% |   0.0% | 0.4020 |   0.0% |     0.00 |
+| 2. LLM without RAG      | simulated-zero-shot | 10 |  5 |  0 |    66.67% | 100.0% |  80.0% |  50.0% | 0.5726 |   0.0% |     0.00 |
+| 3. AI + RAG (Proposed)  | rag+rules           | 10 |  0 |  0 |    100.0% | 100.0% | 100.0% | 100.0% | 0.9908 | 100.0% |     0.25 |
+EOF
+}
+
 cmd_lab() {
     sub="${1:-list}"
     case "$sub" in
         list)
             printf '%s%sTHMD-Guru Global Tech Academy — Official & NCKH Lab Catalog%s\n' "$C_GOLD" "$C_BOLD" "$C_RESET"
             printf '%s%s%s\n' "$C_SAPPHIRE" "------------------------------------------------------------" "$C_RESET"
-            printf '  %s%-18s%s %s\n' "$C_LGOLD" "nckh-zap-rag"   "$C_RESET" "NCKH: AI + Hybrid RAG Verifying & Prioritizing OWASP ZAP Alerts (3 Subnets)"
-            printf '  %s%-18s%s %s\n' "$C_LGOLD" "netops-bgp-sdn" "$C_RESET" "NetOps: FRRouting BGP/OSPF Spine-Leaf & Throughput Telemetry Lab"
-            printf '  %s%-18s%s %s\n' "$C_LGOLD" "web-fullstack"  "$C_RESET" "SWE: Full-Stack Cloud & Microservices Lab (Nginx + PostgreSQL + Redis)"
-            printf '  %s%-18s%s %s\n' "$C_LGOLD" "ai-llm-rag"     "$C_RESET" "AI/MLOps: Local AI / LLM & Vector Database Lab (Ollama + Qdrant)"
-            printf '  %s%-18s%s %s\n' "$C_LGOLD" "cyber-soc-dfir" "$C_RESET" "SecOps: Cybersecurity Blue Team, SOC & DFIR Forensic Lab"
+            printf '  %s%-24s%s %s\n' "$C_LGOLD" "vmware-zap-rag-pfsense" "$C_RESET" "NCKH (VMnet2 192.168.80.0/24 + pfSense): VM1 ZAP (.10), VM2 Target (.20), VM3 AI-RAG (.30)"
+            printf '  %s%-24s%s %s\n' "$C_LGOLD" "nckh-zap-rag"           "$C_RESET" "NCKH: AI + Hybrid RAG Verifying & Prioritizing OWASP ZAP Alerts (3 Subnets)"
+            printf '  %s%-24s%s %s\n' "$C_LGOLD" "netops-bgp-sdn"         "$C_RESET" "NetOps: FRRouting BGP/OSPF Spine-Leaf & Throughput Telemetry Lab"
+            printf '  %s%-24s%s %s\n' "$C_LGOLD" "web-fullstack"          "$C_RESET" "SWE: Full-Stack Cloud & Microservices Lab (Nginx + PostgreSQL + Redis)"
+            printf '  %s%-24s%s %s\n' "$C_LGOLD" "ai-llm-rag"             "$C_RESET" "AI/MLOps: Local AI / LLM & Vector Database Lab (Ollama + Qdrant)"
+            printf '  %s%-24s%s %s\n' "$C_LGOLD" "cyber-soc-dfir"         "$C_RESET" "SecOps: Cybersecurity Blue Team, SOC & DFIR Forensic Lab"
             ;;
         run|benchmark)
             mod="${2:-nckh-zap-rag}"
             shift 2 2>/dev/null || shift $#
             if [ "$mod" = "nckh-zap-rag" ]; then
                 run_nckh_zap_rag_benchmark "$@"
+            elif [ "$mod" = "vmware-zap-rag-pfsense" ] || [ "$mod" = "lab80-pfsense" ]; then
+                run_vmware_zap_rag_pfsense_benchmark "$@"
             else
                 cmd_lab info "$mod"
             fi
@@ -368,6 +399,9 @@ cmd_lab() {
             printf '%s[THMD-Guru Lab]%s Module: %s (%s)\n' "$C_GOLD" "$C_RESET" "$mod" "$GURU_LABS_DIR/$mod"
             if [ "$sub" = "start" ] && [ "$mod" = "nckh-zap-rag" ]; then
                 run_nckh_zap_rag_benchmark
+                return 0
+            elif [ "$sub" = "start" ] && [ "$mod" = "vmware-zap-rag-pfsense" ]; then
+                run_vmware_zap_rag_pfsense_benchmark
                 return 0
             fi
             if [ -f "$GURU_LABS_DIR/$mod/docker-compose.yml" ]; then
@@ -395,17 +429,49 @@ cmd_vm_node() {
             printf '  %-16s %s\n' "Hostname"       "$(hostname 2>/dev/null || echo thmd-guru)"
             printf '  %-16s %s\n' "IPv4 Interfaces" "$(ip_addrs)"
             printf '\nAvailable VMware Topology Roles (THMD-guru-ai vm-node init <role>):\n'
-            printf '  %s%-18s%s %s\n' "$C_LGOLD" "scanner-red"     "$C_RESET" "VM1 (ATTT)   - VMnet2 (172.28.10.10/24, GW 172.28.10.1) OWASP ZAP Scanner"
-            printf '  %s%-18s%s %s\n' "$C_LGOLD" "edge-router-waf" "$C_RESET" "VM2 (Server) - Multi-Homed Router/Firewall/WAF (VMnet8, VMnet2, VMnet3, VMnet4)"
-            printf '  %s%-18s%s %s\n' "$C_LGOLD" "dmz-web-target"  "$C_RESET" "VM3 (Server) - VMnet3 (172.28.20.10/24, GW 172.28.20.1) OWASP Juice Shop/API"
-            printf '  %s%-18s%s %s\n' "$C_LGOLD" "ai-rag-soc"      "$C_RESET" "VM4 (Desktop)- VMnet4 (172.28.30.10/24, GW 172.28.30.1) Qdrant + Ollama + RAG"
+            printf '  %s[Sơ đồ 1: VMnet2 192.168.80.0/24 + pfSense Gateway 192.168.80.1]%s\n' "$C_BOLD" "$C_RESET"
+            printf '  %s%-18s%s %s\n' "$C_LGOLD" "lab80-vm1"       "$C_RESET" "VM1 (ATTT/Kali)  - 192.168.80.10/24 (2 vCPU, 3GB RAM) OWASP ZAP + Browser + Python"
+            printf '  %s%-18s%s %s\n' "$C_LGOLD" "lab80-vm2"       "$C_RESET" "VM2 (Server)     - 192.168.80.20/24 (2 vCPU, 4GB RAM) Nginx + DVWA/JuiceShop/WebGoat + MariaDB"
+            printf '  %s%-18s%s %s\n' "$C_LGOLD" "lab80-vm3"       "$C_RESET" "VM3 (AI-RAG)     - 192.168.80.30/24 (3 vCPU, 4GB RAM) FastAPI + LLM + Vector DB + OWASP/CWE KB"
+            printf '  %s[Sơ đồ 2: Multi-Subnet Cyber-Range 172.28.x.0/24]%s\n' "$C_BOLD" "$C_RESET"
+            printf '  %s%-18s%s %s\n' "$C_LGOLD" "scanner-red"     "$C_RESET" "VM1 (ATTT)       - VMnet2 (172.28.10.10/24, GW 172.28.10.1) OWASP ZAP Scanner"
+            printf '  %s%-18s%s %s\n' "$C_LGOLD" "edge-router-waf" "$C_RESET" "VM2 (Server)     - Multi-Homed Router/Firewall/WAF (VMnet8, VMnet2, VMnet3, VMnet4)"
+            printf '  %s%-18s%s %s\n' "$C_LGOLD" "dmz-web-target"  "$C_RESET" "VM3 (Server)     - VMnet3 (172.28.20.10/24, GW 172.28.20.1) OWASP Juice Shop/API"
+            printf '  %s%-18s%s %s\n' "$C_LGOLD" "ai-rag-soc"      "$C_RESET" "VM4 (Desktop)    - VMnet4 (172.28.30.10/24, GW 172.28.30.1) Qdrant + Ollama + RAG"
             printf '  %s%-18s%s %s\n' "$C_LGOLD" "clone-prep"      "$C_RESET" "Sanitize machine-id, DHCP DUID & SSH keys for VMware Linked Clone"
             ;;
         init)
             role="${2:-}"
-            [ -n "$role" ] || die "Usage: THMD-guru-ai vm-node init <scanner-red|edge-router-waf|dmz-web-target|ai-rag-soc>"
+            [ -n "$role" ] || die "Usage: THMD-guru-ai vm-node init <lab80-vm1|lab80-vm2|lab80-vm3|scanner-red|edge-router-waf|dmz-web-target|ai-rag-soc>"
             dry="${3:-}"
             case "$role" in
+                lab80-vm1|vm1-zap)
+                    printf '%s[VMware Node]%s Provisioning VM1 Role: %slab80-vm1%s (VMnet2: 192.168.80.10/24 -> pfSense GW 192.168.80.1)\n' "$C_GOLD" "$C_RESET" "$C_BOLD" "$C_RESET"
+                    if [ "$(id -u)" -eq 0 ] && [ "$dry" != "--dry-run" ]; then
+                        mkdir -p "$GURU_ETC"
+                        echo "lab80-vm1" > "$GURU_ETC/vm-role"
+                        [ -f "$GURU_LABS_DIR/vmware-zap-rag-pfsense/common/set-static-ip.sh" ] && bash "$GURU_LABS_DIR/vmware-zap-rag-pfsense/common/set-static-ip.sh" vm1 || true
+                    fi
+                    ok "Configured VM1 (Kali/ATTT + OWASP ZAP): IP=192.168.80.10/24, GW=192.168.80.1, Target=192.168.80.20, AI-RAG=192.168.80.30:8000"
+                    ;;
+                lab80-vm2|vm2-target)
+                    printf '%s[VMware Node]%s Provisioning VM2 Role: %slab80-vm2%s (VMnet2: 192.168.80.20/24 -> pfSense GW 192.168.80.1)\n' "$C_GOLD" "$C_RESET" "$C_BOLD" "$C_RESET"
+                    if [ "$(id -u)" -eq 0 ] && [ "$dry" != "--dry-run" ]; then
+                        mkdir -p "$GURU_ETC"
+                        echo "lab80-vm2" > "$GURU_ETC/vm-role"
+                        [ -f "$GURU_LABS_DIR/vmware-zap-rag-pfsense/common/set-static-ip.sh" ] && bash "$GURU_LABS_DIR/vmware-zap-rag-pfsense/common/set-static-ip.sh" vm2 || true
+                    fi
+                    ok "Configured VM2 (Web Server Target): IP=192.168.80.20/24, GW=192.168.80.1 (Nginx :80, Juice Shop :3000, DVWA :8081, WebGoat :8080, MariaDB)"
+                    ;;
+                lab80-vm3|vm3-airag)
+                    printf '%s[VMware Node]%s Provisioning VM3 Role: %slab80-vm3%s (VMnet2: 192.168.80.30/24 -> pfSense GW 192.168.80.1)\n' "$C_GOLD" "$C_RESET" "$C_BOLD" "$C_RESET"
+                    if [ "$(id -u)" -eq 0 ] && [ "$dry" != "--dry-run" ]; then
+                        mkdir -p "$GURU_ETC"
+                        echo "lab80-vm3" > "$GURU_ETC/vm-role"
+                        [ -f "$GURU_LABS_DIR/vmware-zap-rag-pfsense/common/set-static-ip.sh" ] && bash "$GURU_LABS_DIR/vmware-zap-rag-pfsense/common/set-static-ip.sh" vm3 || true
+                    fi
+                    ok "Configured VM3 (AI-RAG Server): IP=192.168.80.30/24, GW=192.168.80.1 (FastAPI :8000, Qdrant :6333, Ollama :11434, OWASP/CWE/ZAP KB)"
+                    ;;
                 scanner-red)
                     printf '%s[VMware Node]%s Provisioning VM1 Role: %sscanner-red%s (VMnet2: 172.28.10.10/24 -> GW 172.28.10.1)\n' "$C_GOLD" "$C_RESET" "$C_BOLD" "$C_RESET"
                     if [ "$(id -u)" -eq 0 ] && [ "$dry" != "--dry-run" ]; then

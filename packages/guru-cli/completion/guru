@@ -1,13 +1,32 @@
-# bash completion for guru(1) — THMD-Guru Linux CLI
+# bash completion for THMD-guru-ai(1) & guru(1) — THMD-Guru Linux CLI
 _guru_completions() {
     local cur prev cmds
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
-    cmds="info status version edition doctor harden lab update list-commands help welcome console sandbox stealth"
+    cmds="info status version edition doctor harden lab vm-node ai gpu dev-env arsenal update plugins help welcome console sandbox stealth"
     if [[ ${COMP_CWORD} -eq 1 ]]; then
         COMPREPLY=( $(compgen -W "${cmds}" -- "${cur}") )
         return 0
     fi
+    case "${prev}" in
+        lab)
+            COMPREPLY=( $(compgen -W "list info start run benchmark vmware-zap-rag-pfsense nckh-zap-rag netops-bgp-sdn web-fullstack ai-llm-rag cyber-soc-dfir" -- "${cur}") )
+            return 0
+            ;;
+        run|start|info|benchmark)
+            COMPREPLY=( $(compgen -W "vmware-zap-rag-pfsense nckh-zap-rag netops-bgp-sdn web-fullstack ai-llm-rag cyber-soc-dfir" -- "${cur}") )
+            return 0
+            ;;
+        vm-node)
+            COMPREPLY=( $(compgen -W "status init clone-prep" -- "${cur}") )
+            return 0
+            ;;
+        init)
+            COMPREPLY=( $(compgen -W "lab80-vm1 lab80-vm2 lab80-vm3 scanner-red edge-router-waf dmz-web-target ai-rag-soc" -- "${cur}") )
+            return 0
+            ;;
+    esac
 }
 complete -F _guru_completions guru
+complete -F _guru_completions THMD-guru-ai

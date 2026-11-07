@@ -73,11 +73,18 @@ status_json="$("${ROOT_DIR}/packages/guru-cli/src/THMD-guru-ai" status --json)"
 grep -q '"cli":"THMD-guru-ai"' <<< "${status_json}"
 lab_out="$("${ROOT_DIR}/packages/guru-cli/src/THMD-guru-ai" lab list)"
 grep -q "nckh-zap-rag" <<< "${lab_out}"
+grep -q "vmware-zap-rag-pfsense" <<< "${lab_out}"
 exp_out="$("${ROOT_DIR}/packages/guru-cli/src/THMD-guru-ai" lab run nckh-zap-rag)"
 grep -q "NDCG@5" <<< "${exp_out}"
+exp_pfsense_out="$("${ROOT_DIR}/packages/guru-cli/src/THMD-guru-ai" lab run vmware-zap-rag-pfsense)"
+grep -q "0.9908" <<< "${exp_pfsense_out}"
 vm_out="$("${ROOT_DIR}/packages/guru-cli/src/THMD-guru-ai" vm-node status)"
 grep -q "edge-router-waf" <<< "${vm_out}"
+grep -q "lab80-vm1" <<< "${vm_out}"
 "${ROOT_DIR}/packages/guru-cli/src/THMD-guru-ai" vm-node init scanner-red --dry-run >/dev/null
+"${ROOT_DIR}/packages/guru-cli/src/THMD-guru-ai" vm-node init lab80-vm1 --dry-run >/dev/null
+"${ROOT_DIR}/packages/guru-cli/src/THMD-guru-ai" vm-node init lab80-vm2 --dry-run >/dev/null
+"${ROOT_DIR}/packages/guru-cli/src/THMD-guru-ai" vm-node init lab80-vm3 --dry-run >/dev/null
 "${ROOT_DIR}/packages/guru-cli/src/THMD-guru-ai" ai status >/dev/null
 "${ROOT_DIR}/packages/guru-cli/src/THMD-guru-ai" gpu >/dev/null
 "${ROOT_DIR}/packages/guru-cli/src/THMD-guru-ai" dev-env >/dev/null

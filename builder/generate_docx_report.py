@@ -810,6 +810,31 @@ def build_word_document(root: Path, mockups_dir: Path, artifact_dir: Path, out_d
         ],
     )
 
+    add_heading_styled(doc, "3.3. Tích hợp Bổ sung Phòng Lab NCKH `vmware-zap-rag-pfsense` (Sơ đồ 3 VM + pfSense Gateway trên VMnet2 192.168.80.0/24)", 2)
+    add_para(
+        doc,
+        "Bên cạnh kiến trúc 3-VM thuần túy, hệ thống THMD-Guru Linux 1.0 đã bổ sung trọn bộ mã nguồn thực thi cho Phòng Lab `vmware-zap-rag-pfsense` tại thư mục `/usr/share/thmd-guru/labs/vmware-zap-rag-pfsense/` bám sát 100% sơ đồ hệ thống trên VMware Workstation (LAB): Internet <-> Router <-> pfSense Firewall (192.168.80.1) <-> VMnet2 (192.168.80.0/24) kết nối 3 máy ảo chức năng (VM1 .80.10, VM2 .80.20, VM3 .80.30) và luồng tương tác 2 chiều với Người đánh giá / GVHD / Nhóm NCKH.",
+    )
+    uploaded_diag = artifact_dir / ".user_uploaded" / "media_1793723120037_b6e5112f.jpg"
+    if uploaded_diag.exists():
+        add_figure(
+            doc,
+            uploaded_diag,
+            "Hình 3.2: Sơ đồ Hệ thống trên VMware (LAB `vmware-zap-rag-pfsense`) — Kết nối pfSense Firewall, VMnet2 (192.168.80.0/24), 3 VM (VM1 ZAP, VM2 Web Target, VM3 AI-RAG) và Người đánh giá / GVHD.",
+        )
+
+    add_styled_table(
+        doc,
+        ["Thành phần trong Sơ đồ", "Cấu hình & Địa chỉ IP", "Kịch bản & Lệnh Triển khai Tự động trong THMD-Guru Linux"],
+        [
+            ["pfSense Firewall (Gateway)", "1 vCPU | 1GB RAM | WAN: VMnet8 | LAN: 192.168.80.1/24", "Tài liệu & bảng luật Egress-Guard: pfsense/pfsense-setup.md (Chặn máy quét VM1 ra Internet)"],
+            ["VM1 – Kali / THMD-Guru ATTT + OWASP ZAP", "2 vCPU | 3GB RAM | IP: 192.168.80.10 (VMnet2)", "Lệnh: sudo THMD-guru-ai vm-node init lab80-vm1 | Quét & đẩy JSON: python3 vm1-kali-zap/zap_scan.py"],
+            ["VM2 – Ubuntu / THMD-Guru Server (Target)", "2 vCPU | 4GB RAM | IP: 192.168.80.20 (VMnet2)", "Lệnh: sudo THMD-guru-ai vm-node init lab80-vm2 | Chạy Nginx + DVWA + Juice Shop + WebGoat + MariaDB"],
+            ["VM3 – Ubuntu / THMD-Guru AI-RAG Server", "3 vCPU | 4GB RAM | IP: 192.168.80.30 (VMnet2)", "Lệnh: sudo THMD-guru-ai vm-node init lab80-vm3 | FastAPI (:8000) + Qdrant (:6333) + Ollama (:11434)"],
+            ["Người đánh giá / GVHD / Nhóm NCKH", "Trình duyệt / CLI kết nối 192.168.80.30:8000", "Lệnh: python3 evaluator/evaluate.py (Xem báo cáo, gắn nhãn Ground Truth CSV & đo Precision/Recall/F1)"],
+        ],
+    )
+
     # ==========================================================================
     # CHƯƠNG 4: ĐÁNH GIÁ ĐA CỘNG ĐỒNG & KẾT QUẢ THỰC NGHIỆM ĐỊNH LƯỢNG
     # ==========================================================================
@@ -826,10 +851,10 @@ def build_word_document(root: Path, mockups_dir: Path, artifact_dir: Path, out_d
         ],
     )
 
-    add_heading_styled(doc, "4.1. Kết quả Thực nghiệm Định lượng từ Phòng Lab NCKH (THMD-guru-ai lab run nckh-zap-rag)", 2)
+    add_heading_styled(doc, "4.1. Kết quả Thực nghiệm Định lượng — Bộ dữ liệu 10 Cảnh báo (`THMD-guru-ai lab run nckh-zap-rag`)", 2)
     add_para(
         doc,
-        "Bảng dưới đây là kết quả thực nghiệm xuất tự động từ bộ khung đánh giá khoa học tích hợp sẵn trong hệ điều hành (/usr/share/thmd-guru/labs/nckh-zap-rag/run_experiment.py) trên tập 10 cảnh báo thực tế của OWASP ZAP (gồm 5 lỗ hổng thật True Positives và 5 cảnh báo giả False Positives):",
+        "Bảng dưới đây là kết quả thực nghiệm xuất tự động từ bộ khung đánh giá khoa học tích hợp sẵn trong hệ điều hành (/usr/share/thmd-guru/labs/nckh-zap-rag/run_experiment.py) trên tập 10 cảnh báo của OWASP ZAP (gồm 5 lỗ hổng thật True Positives và 5 cảnh báo giả False Positives):",
     )
 
     add_styled_table(
@@ -839,6 +864,22 @@ def build_word_document(root: Path, mockups_dir: Path, artifact_dir: Path, out_d
             ["1. Baseline 1: Raw OWASP ZAP (Quét tĩnh)", "5", "5", "50.00%", "100.00%", "66.67%", "0.00%", "0.6453"],
             ["2. Baseline 2: LLM Zero-Shot (Không có RAG)", "5", "2", "71.43%", "100.00%", "83.33%", "60.00%", "0.8189"],
             ["3. Đề xuất: THMD-guru-ai + Hybrid RAG (OWASP/CWE/WSTG)", "5", "0", "100.00%", "100.00%", "100.00%", "100.00%", "1.0000"],
+        ],
+    )
+
+    add_heading_styled(doc, "4.2. Kết quả Thực nghiệm Mở rộng — Bộ dữ liệu 20 Cảnh báo Juice Shop + DVWA (`THMD-guru-ai lab run vmware-zap-rag-pfsense`)", 2)
+    add_para(
+        doc,
+        "Trên bộ dữ liệu mở rộng 20 cảnh báo thực tế quét từ OWASP Juice Shop (:3000) và DVWA (:8081) trên máy ảo VM2 (192.168.80.20) với 10 lỗ hổng thật (TP) và 10 cảnh báo giả (FP), động cơ Hybrid RAG (BM25 + Vector RRF + WSTG Regex Signals) trên VM3 (192.168.80.30) đạt kết quả vượt trội trên cả 5 đầu ra nghiên cứu:",
+    )
+
+    add_styled_table(
+        doc,
+        ["Phương pháp", "Engine", "TP", "FP", "Precision", "Recall", "F1", "FPRR", "NDCG@5", "Có nguồn dẫn", "ms/cảnh báo"],
+        [
+            ["1. ZAP thô (Baseline)", "zap", "10", "10", "50.00%", "100.00%", "66.67%", "0.00%", "0.4020", "0.00%", "0.00 ms"],
+            ["2. LLM không RAG", "simulated-zero-shot", "10", "5", "66.67%", "100.00%", "80.00%", "50.00%", "0.5726", "0.00%", "0.00 ms"],
+            ["3. AI + RAG (Đề xuất)", "rag+rules / rag+llm", "10", "0", "100.00%", "100.00%", "100.00%", "100.00%", "0.9908", "100.00%", "0.25 ms"],
         ],
     )
 

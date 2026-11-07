@@ -1,0 +1,71 @@
+# THMD-Guru LAB — VM2 Ubuntu Web Server (Target) 192.168.80.20
+# Nginx (reverse proxy + access log) | DVWA + MariaDB | OWASP Juice Shop | WebGoat
+# Chạy: sudo LAB_IP=192.168.80.20 docker compose up -d
+# Cổng chỉ bind vào IP LAB để không lộ ra card mạng khác.
+name: thmd-lab-target
+
+services:
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: lab-nginx
+    restart: unless-stopped
+    ports:
+      - "${LAB_IP:-192.168.80.20}:80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/html:/usr/share/nginx/html:ro
+      - /var/log/nginx:/var/log/nginx
+    depends_on: [dvwa, juice-shop, webgoat]
+    mem_limit: 128m
+
+  db:
+    image: mariadb:10.11
+    container_name: lab-mariadb
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: thmd-lab-root
+      MYSQL_DATABASE: dvwa
+      MYSQL_USER: dvwa
+      MYSQL_PASSWORD: p@ssw0rd
+    volumes:
+      - dvwa-db:/var/lib/mysql
+    mem_limit: 384m
+
+  dvwa:
+    image: ghcr.io/digininja/dvwa:latest
+    container_name: lab-dvwa
+    restart: unless-stopped
+    environment:
+      DB_SERVER: db
+      DB_DATABASE: dvwa
+      DB_USERNAME: dvwa
+      DB_PASSWORD: p@ssw0rd
+    ports:
+      - "${LAB_IP:-192.168.80.20}:8081:80"
+    depends_on: [db]
+    mem_limit: 256m
+
+  juice-shop:
+    image: bkimminich/juice-shop:latest
+    container_name: lab-juice-shop
+    restart: unless-stopped
+    environment:
+      NODE_ENV: unsafe
+    ports:
+      - "${LAB_IP:-192.168.80.20}:3000:3000"
+    mem_limit: 768m
+
+  webgoat:
+    image: webgoat/webgoat:latest
+    container_name: lab-webgoat
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Ho_Chi_Minh
+      JAVA_TOOL_OPTIONS: "-Xmx640m"
+    ports:
+      - "${LAB_IP:-192.168.80.20}:8080:8080"
+    mem_limit: 1g
+
+volumes:
+  dvwa-db:
+

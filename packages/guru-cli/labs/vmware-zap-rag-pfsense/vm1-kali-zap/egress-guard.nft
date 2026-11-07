@@ -1,0 +1,16 @@
+#!/usr/sbin/nft -f
+# THMD-Guru LAB — VM1 (Kali + ZAP) egress guard: "Chỉ quét môi trường LAB được cấp phép"
+# VM1 chỉ được gửi lưu lượng mới tới: VM2 target (mọi cổng web) và VM3 AI-RAG (:8000), DNS pfSense.
+table inet thmd_lab_guard {
+    chain output {
+        type filter hook output priority 0; policy drop;
+        oif "lo" accept
+        ct state established,related accept
+        ip daddr 192.168.80.1  udp dport 53 accept
+        ip daddr 192.168.80.1  tcp dport 53 accept
+        ip daddr 192.168.80.20 tcp dport { 80, 443, 3000, 8080, 8081 } accept
+        ip daddr 192.168.80.30 tcp dport 8000 accept
+        ip protocol icmp ip daddr 192.168.80.0/24 accept
+        log prefix "[THMD-LAB-BLOCK] " level warn counter drop
+    }
+}
