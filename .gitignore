@@ -1,4 +1,5 @@
 # THMD-Guru OS Forge — Git Ignore
+# 1. Build workdirs, signing private keys & binary outputs (NEVER commit to Git)
 build/
 out/
 *.iso
@@ -6,8 +7,23 @@ out/
 *.deb
 *.buildinfo
 *.changes
+*.key
+*.pem
+!*.pub
 packages/thmd-guru-branding/assets/
 packages/thmd-guru-branding/plymouth/
 
+# 2. Python / Lab runtime state & secrets
 __pycache__/
 *.pyc
+.venv/
+.env
+*.db
+*.sqlite3
+zap-output/
+packages/guru-cli/labs/vmware-zap-rag-pfsense/vm3-ai-rag/data/
+
+# 3. OS & Office temporary lock files
+~$*.docx
+.DS_Store
+Thumbs.db
