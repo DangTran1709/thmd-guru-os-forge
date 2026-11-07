@@ -1,0 +1,65 @@
+{
+  "product": "THMD-Guru Linux",
+  "codename": "Genesis",
+  "version": "1.0.1",
+  "tag": "v1.0.1-genesis",
+  "channel": "stable-lts",
+  "base_distro": "Debian GNU/Linux 12 (bookworm)",
+  "kernel_branch": "Linux 6.1 LTS / SLTS (debian-bookworm-amd64)",
+  "released_at": "2026-11-07T16:58:54+07:00",
+  "repository": "https://github.com/DangTran1709/thmd-guru-os-forge",
+  "upstream_telemetry": {
+    "debian_suite": "bookworm",
+    "debian_point_release": "12.15",
+    "kernel_abi": "6.1.0-32-amd64",
+    "security_tracker": "https://security-tracker.debian.org/tracker/data/json"
+  },
+  "editions": {
+    "desktop": {
+      "iso_name": "thmd-guru-desktop-1.0-genesis-amd64.iso",
+      "size_bytes": 58425344,
+      "sha256": "d7f6fd3e1faa565282f4b021816594dab1557868df22c0d253fba1ec45212965",
+      "vm_role": "VM3 (192.168.80.30) - AI-RAG Server & Developer Workstation"
+    },
+    "server": {
+      "iso_name": "thmd-guru-server-1.0-genesis-amd64.iso",
+      "size_bytes": 58433536,
+      "sha256": "92b8c83e9d76ee9bf09f48f624e8e668b7fd9cce6c94d67fb457fe081eee5b49",
+      "vm_role": "VM2 (192.168.80.20) - Web Server Target & Cloud Node"
+    },
+    "attt": {
+      "iso_name": "thmd-guru-attt-1.0-genesis-amd64.iso",
+      "size_bytes": 58451968,
+      "sha256": "61e884d0352755f96913ca40908fc2fadb9c1cde02e141d4f30b33e020e8f346",
+      "vm_role": "VM1 (192.168.80.10) - OWASP ZAP Scanner, Red/Blue Team & DFIR"
+    }
+  },
+  "patch_history": [
+    {
+      "version": "1.0.1",
+      "tag": "v1.0.1-genesis",
+      "date": "2026-11-07",
+      "severity": "HIGH",
+      "title": "Bản vá Khởi động VMware Workstation (BIOS/UEFI), Trình cài đặt thmd-installer Mặc định & Tích hợp AI PatchWatch Agent",
+      "highlights": [
+        "[KERNEL & BOOTLOADER] Đặt mục '1. Install & VMware Lab Wizard' làm mặc định (default #1) trên cả BIOS (ISOLINUX) và UEFI (GRUB2).",
+        "[VMWARE & INITRAMFS] Khắc phục triệt để lỗi treo khung trắng (vga=788 bogl-bterm) và lỗi thiếu /dev/tty0, /dev/tty1 bằng cơ chế tự động khởi tạo devtmpfs + systemd-udevd + nạp driver VMware (e1000, vmxnet3, mptspi, nvme).",
+        "[UEFI ISO-9660] Bổ sung bản ghi mở rộng Rock Ridge RRIP_1991A (ER record) chuẩn hóa khả năng khởi động UEFI GRUB2.",
+        "[VMWARE LAB NCKH] Bổ sung công cụ thmd-installer hỗ trợ gán IP tĩnh 1-chạm (192.168.80.10/.20/.30) trên mạng cô lập VMnet2 không có DHCP.",
+        "[AI-AGENT] Tích hợp công cụ tự động theo dõi bản vá, đánh số phiên bản và phát hành GitHub Release (THMD-guru-ai patch-agent)."
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "tag": "v1.0.0-genesis",
+      "date": "2026-11-03",
+      "severity": "INITIAL",
+      "title": "Phát hành khởi tạo THMD-Guru Linux 1.0 (Genesis) - 3 Phiên bản Desktop, Server, ATTT",
+      "highlights": [
+        "[CORE OS] Xây dựng nền tảng Debian 12 LTS (Bookworm) Kernel 6.1 LTS kèm cấu hình KSPP/CIS Hardening và MITRE ATT&CK Auditd.",
+        "[CLI] Ra mắt công cụ điều hành hợp nhất THMD-guru-ai (alias: guru) và các plugin chuyên biệt (sandbox, stealth, console, welcome).",
+        "[NCKH LAB] Tích hợp phòng Lab thực nghiệm OWASP ZAP + AI Hybrid RAG + pfSense Firewall trên VMware Workstation."
+      ]
+    }
+  ]
+}

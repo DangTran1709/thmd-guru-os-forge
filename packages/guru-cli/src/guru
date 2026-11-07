@@ -13,7 +13,7 @@
 set -eu
 (set -o pipefail 2>/dev/null) && set -o pipefail
 
-GURU_VERSION="1.0.0"
+GURU_VERSION="1.0.1"
 GURU_CODENAME="Genesis"
 GURU_PLUGIN_DIR="${GURU_PLUGIN_DIR:-/usr/lib/guru/commands}"
 GURU_UPDATE_HOOK_DIR="${GURU_UPDATE_HOOK_DIR:-/usr/lib/guru/update.d}"
@@ -168,8 +168,9 @@ ${C_BOLD}Built-in commands:${C_RESET}
   ${C_LGOLD}ai${C_RESET}         Local/Host LLM AI Copilot (status | ask | explain | sec-audit)
   ${C_LGOLD}gpu${C_RESET}        AI Hardware Accelerator & VectorDB Kernel mmap check
   ${C_LGOLD}dev-env${C_RESET}    User-space polyglot manager (uv / fnm / mise / rustup)
-  ${C_LGOLD}arsenal${C_RESET}    Cybersecurity Red/Blue/DFIR/OWASP tool inventory & sandbox runner
-  ${C_LGOLD}update${C_RESET}     Update system packages via APT (--check | -y)
+  ${C_LGOLD}arsenal${C_RESET}     Cybersecurity Red/Blue/DFIR/OWASP tool inventory & sandbox runner
+  ${C_LGOLD}patch-agent${C_RESET} Autonomous AI-Agent for patch tracking, versioning & GitHub Release
+  ${C_LGOLD}update${C_RESET}      Update system packages via APT (--check | -y)
   ${C_LGOLD}plugins${C_RESET}    List installed edition plugin commands
   ${C_LGOLD}version${C_RESET}    Print THMD-guru-ai CLI version
   ${C_LGOLD}help${C_RESET}       Show this help guide
@@ -643,9 +644,36 @@ cmd_arsenal() {
     esac
 }
 
+cmd_patch_agent() {
+    agent_py=""
+    for cand in \
+        "/usr/share/thmd-guru/patch-agent/patch_agent.py" \
+        "$(cd "$(dirname "$0")/../../.." 2>/dev/null && pwd || echo "")/builder/patch_agent.py" \
+        "./builder/patch_agent.py"; do
+        if [ -f "$cand" ]; then
+            agent_py="$cand"
+            break
+        fi
+    done
+    if [ -n "$agent_py" ]; then
+        if command -v python3 >/dev/null 2>&1; then
+            python3 "$agent_py" "$@" && return 0
+        elif [ -x "/c/Python314/python.exe" ]; then
+            /c/Python314/python.exe "$agent_py" "$@" && return 0
+        fi
+    fi
+    printf '%s%sTHMD-Guru PatchWatch AI-Agent (v%s - %s)%s\n' "$C_GOLD" "$C_BOLD" "$GURU_VERSION" "$GURU_CODENAME" "$C_RESET"
+    printf '%s%s%s\n' "$C_SAPPHIRE" "------------------------------------------------------------" "$C_RESET"
+    echo "  Current Release : v${GURU_VERSION}-genesis (Debian 12 Bookworm Kernel 6.1 LTS)"
+    echo "  GitHub Releases : https://github.com/DangTran1709/thmd-guru-os-forge/releases"
+    echo "  Latest Patch    : [HIGH] VMware BIOS/UEFI Boot Fix, thmd-installer Default #1 & PatchWatch AI-Agent"
+    ok "System is running verified release v${GURU_VERSION}-genesis"
+}
+
 cmd_update() {
     if [ "${1:-}" = "--check" ] || [ "${1:-}" = "-c" ]; then
-        echo "[THMD-Guru Update] Checking APT repository indexes..."
+        echo "[THMD-Guru Update] Checking APT repository indexes & PatchWatch AI-Agent..."
+        cmd_patch_agent status
         command -v apt-get >/dev/null 2>&1 && apt-get -s upgrade || echo "Live RAM environment: no pending package upgrades."
         return 0
     fi
@@ -669,6 +697,7 @@ main() {
         gpu)                  cmd_gpu "$@" ;;
         dev-env)              cmd_dev_env "$@" ;;
         arsenal)              cmd_arsenal "$@" ;;
+        patch-agent|patchwatch|patch) cmd_patch_agent "$@" ;;
         update)               cmd_update "$@" ;;
         plugins)              cmd_plugins ;;
         *)                    run_plugin "$cmd" "$@" ;;

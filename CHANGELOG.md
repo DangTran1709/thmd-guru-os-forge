@@ -1,0 +1,36 @@
+# 📋 Nhật Ký Bản Vá & Phiên Bản Phát Hành (Official Patch & Release Changelog)
+
+**Dự án:** **THMD-Guru Linux 1.0 "Genesis" (OS Forge)**  
+**Cơ chế quản lý bản vá tự động:** **THMD-Guru PatchWatch AI-Agent (`THMD-guru-ai patch-agent`)**  
+**Kho phát hành chính thức:** [GitHub Releases — `DangTran1709/thmd-guru-os-forge`](https://github.com/DangTran1709/thmd-guru-os-forge/releases)
+
+> Tài liệu này được cập nhật tự động bởi công cụ **AI-Agent (`builder/patch_agent.py` / `THMD-guru-ai patch-agent`)** mỗi khi phát hiện bản vá bảo mật mới từ nhánh thượng nguồn **Debian 12 ("Bookworm" `Kernel 6.1 LTS`)**, bản vá công cụ phòng Lab (**OWASP ZAP / AI-RAG**) hoặc bản sửa lỗi hệ thống trong kho mã nguồn.
+
+---
+
+## 🚀 Phiên bản [`v1.0.1-genesis`](https://github.com/DangTran1709/thmd-guru-os-forge/releases/tag/v1.0.1-genesis) — *Ngày phát hành: 07/11/2026*
+- **Mức độ quan trọng (Severity):** `HIGH` *(Bản cập nhật đã kiểm증 bởi THMD-Guru PatchWatch AI-Agent (Hybrid Rule + LLM Advisory Synthesizer))*
+- **Nhánh nhân (Kernel Branch):** `Linux 6.1 LTS / SLTS (Debian 12.15 Bookworm amd64)`
+- **Tóm tắt bản vá:** **Bản vá Khởi động VMware Workstation (BIOS/UEFI), Trình cài đặt thmd-installer Mặc định & Tích hợp AI PatchWatch Agent**
+
+### 🛠 Chi Tiết Các Hạng Mục Được Vá & Nâng Cấp Trong `v1.0.1-genesis`
+- [KERNEL & BOOTLOADER] Đặt mục '1. Install & VMware Lab Wizard' làm mặc định (default #1) trên cả BIOS (ISOLINUX) và UEFI (GRUB2).
+- [VMWARE & INITRAMFS] Khắc phục triệt để lỗi treo khung trắng (vga=788 bogl-bterm) và lỗi thiếu /dev/tty0, /dev/tty1 bằng cơ chế tự động khởi tạo devtmpfs + systemd-udevd + nạp driver VMware (e1000, vmxnet3, mptspi, nvme).
+- [UEFI ISO-9660] Bổ sung bản ghi mở rộng Rock Ridge RRIP_1991A (ER record) chuẩn hóa khả năng khởi động UEFI GRUB2.
+- [VMWARE LAB NCKH] Bổ sung công cụ thmd-installer hỗ trợ gán IP tĩnh 1-chạm (192.168.80.10/.20/.30) trên mạng cô lập VMnet2 không có DHCP.
+- [AI-AGENT] Tích hợp công cụ tự động theo dõi bản vá, đánh số phiên bản và phát hành GitHub Release (THMD-guru-ai patch-agent).
+
+
+### 🔐 Bảng Mã Băm Kiểm Tra Toàn Vẹn (`SHA-256`) — `v1.0.1-genesis`
+
+| Phiên bản | Tên tệp `.ISO` | Dung lượng | Mã Băm `SHA-256` |
+| :--- | :--- | :--- | :--- |
+| **ATTT (`VM1`)** | `thmd-guru-attt-1.0-genesis-amd64.iso` | `58,451,968 bytes` | `61e884d0352755f96913ca40908fc2fadb9c1cde02e141d4f30b33e020e8f346` |
+| **Server (`VM2`)** | `thmd-guru-server-1.0-genesis-amd64.iso` | `58,433,536 bytes` | `92b8c83e9d76ee9bf09f48f624e8e668b7fd9cce6c94d67fb457fe081eee5b49` |
+| **Desktop (`VM3`)** | `thmd-guru-desktop-1.0-genesis-amd64.iso` | `58,425,344 bytes` | `d7f6fd3e1faa565282f4b021816594dab1557868df22c0d253fba1ec45212965` |
+
+---
+
+## 🎉 Phiên bản [`v1.0.0-genesis`](https://github.com/DangTran1709/thmd-guru-os-forge/releases/tag/v1.0.0-genesis) — *Ngày phát hành: 03/11/2026*
+- **Mức độ quan trọng (Severity):** `INITIAL RELEASE`
+- **Tóm tắt:** Phát hành phiên bản đầu tiên của hệ sinh thái **THMD-Guru Linux 1.0 ("Genesis")** gồm 3 phiên bản (`desktop`, `server`, `attt`), công cụ điều hành `THMD-guru-ai`, kho gói `.deb` ký số RSA-4096 và phòng Lab thực nghiệm NCKH (`OWASP ZAP + AI Hybrid RAG + pfSense Firewall`).

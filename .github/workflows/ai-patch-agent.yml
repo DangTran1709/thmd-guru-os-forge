@@ -1,0 +1,57 @@
+name: THMD-Guru PatchWatch AI-Agent — Automated Security Patch & Release
+
+on:
+  schedule:
+    # Tự động quét bản vá Debian 12 Bookworm & OWASP ZAP mỗi ngày lúc 02:00 UTC (09:00 sáng giờ VN)
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Chế độ thực thi (check | release)"
+        required: true
+        default: "check"
+      bump:
+        description: "Loại tăng phiên bản (patch | minor | major)"
+        required: false
+        default: "patch"
+      title:
+        description: "Tiêu đề bản vá hiển thị cho người dùng trên GitHub Releases"
+        required: false
+        default: "Bản vá Bảo mật Nhân Debian 12 LTS & Cập nhật Hệ thống THMD-Guru Linux"
+
+permissions:
+  contents: write
+
+jobs:
+  patchwatch-ai-agent:
+    name: AI PatchWatch Telemetry & Versioned Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout THMD-Guru OS Forge Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run PatchWatch AI-Agent Upstream & Integrity Check
+        run: |
+          python3 builder/patch_agent.py status
+          python3 builder/patch_agent.py check
+
+      - name: Trigger Automated Version Bump & GitHub Release (On Dispatch)
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'release'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "THMD-Guru PatchWatch AI-Agent"
+          git config user.email "patch-agent@thmd-guru.edu.vn"
+          python3 builder/patch_agent.py release \
+            --bump "${{ github.event.inputs.bump || 'patch' }}" \
+            --title "${{ github.event.inputs.title }}" \
+            --rebuild-iso \
+            --push \
+            --upload-github
