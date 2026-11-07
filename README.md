@@ -5,6 +5,18 @@
 
 ---
 
+## 📥 Tải Xuống File `.iso` Hệ Điều Hành (Official GitHub Releases `v1.0.0-genesis`)
+
+Toàn bộ 3 phiên bản tệp `.iso` khởi động chuẩn **Hybrid BIOS/UEFI** (chạy trực tiếp trên **VMware Workstation**, **VirtualBox**, **QEMU/KVM** hoặc ghi ra **USB cài lên máy thật**) được phát hành chính thức tại mục [**GitHub Releases (`v1.0.0-genesis`)**](https://github.com/DangTran1709/thmd-guru-os-forge/releases/tag/v1.0.0-genesis):
+
+| Phiên bản Hệ điều hành | Link Tải Trực Tiếp (`.iso`) | Mã Kiểm Tra Toàn Vẹn (`.sha256`) |
+| :--- | :--- | :--- |
+| **1. THMD-Guru Linux Desktop 1.0** (`desktop`) | [**⬇ Tải `thmd-guru-desktop-1.0-genesis-amd64.iso`**](https://github.com/DangTran1709/thmd-guru-os-forge/releases/download/v1.0.0-genesis/thmd-guru-desktop-1.0-genesis-amd64.iso) *(55.7 MB)* | [`e9ff09ad6abef448...5bfc5f91e66`](https://github.com/DangTran1709/thmd-guru-os-forge/releases/download/v1.0.0-genesis/thmd-guru-desktop-1.0-genesis-amd64.iso.sha256) |
+| **2. THMD-Guru Linux Server 1.0** (`server`) | [**⬇ Tải `thmd-guru-server-1.0-genesis-amd64.iso`**](https://github.com/DangTran1709/thmd-guru-os-forge/releases/download/v1.0.0-genesis/thmd-guru-server-1.0-genesis-amd64.iso) *(55.7 MB)* | [`d86da5eb0a1fb616...8eb1c36e661b3`](https://github.com/DangTran1709/thmd-guru-os-forge/releases/download/v1.0.0-genesis/thmd-guru-server-1.0-genesis-amd64.iso.sha256) |
+| **3. THMD-Guru Linux cho ATTT 1.0** (`attt`) | [**⬇ Tải `thmd-guru-attt-1.0-genesis-amd64.iso`**](https://github.com/DangTran1709/thmd-guru-os-forge/releases/download/v1.0.0-genesis/thmd-guru-attt-1.0-genesis-amd64.iso) *(55.7 MB)* | [`66a330f557e08e3c...07ddf892c4995`](https://github.com/DangTran1709/thmd-guru-os-forge/releases/download/v1.0.0-genesis/thmd-guru-attt-1.0-genesis-amd64.iso.sha256) |
+
+---
+
 ## 1. Tổng Quan Hệ Sinh Thái 3 Phiên Bản
 
 Hệ thống **THMD-Guru OS Forge** là nhà máy chế tạo Hệ điều hành tự động (Infrastructure-as-Code) xuất ra 3 phiên bản chuyên biệt:
