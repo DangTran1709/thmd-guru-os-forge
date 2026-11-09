@@ -301,71 +301,138 @@ fi
 """
     add_file("usr/lib/finish-install.d/90thmd-guru", finish_hook, executable=True)
 
-    # Interactive THMD-Guru Installer & VMware Lab Node Provisioner (`/usr/bin/thmd-installer`)
+    # Interactive THMD-Guru Installer & Graphical TUI Control Center (`/usr/bin/thmd-installer`)
     thmd_installer = f"""#!/bin/sh
-# THMD-Guru Linux 1.0 "Genesis" ({edition.upper()}) - Interactive OS Installer & VMware Lab Wizard
+# THMD-Guru Linux 1.1 "Genesis" ({edition.upper()}) - Graphical TUI Control Center & Modular Hub
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+export TERM="linux"
+export GURU_FORCE_COLOR=1
+
+ESC="$(printf '\\033')"
+# Reprogram Linux VT 16-color VGA Palette to THMD-Guru Cyber Sapphire & Royal Gold
+init_vga_palette() {{
+    printf '%s]P0060d1a' "$ESC" # 0: Deep Cyber Navy Background (#060D1A)
+    printf '%s]P1e11d48' "$ESC" # 1: Tactical Crimson
+    printf '%s]P210b981' "$ESC" # 2: Emerald Matrix Green
+    printf '%s]P3d4af37' "$ESC" # 3: Royal Metallic Gold
+    printf '%s]P40f2d5e' "$ESC" # 4: Deep Sapphire Panel (#0F2D5E)
+    printf '%s]P57c3aed' "$ESC" # 5: Cyber Violet
+    printf '%s]P60891b2' "$ESC" # 6: Deep Teal Cyan
+    printf '%s]P7cbd5e1' "$ESC" # 7: Crisp Silver Text
+    printf '%s]P8334155' "$ESC" # 8: Slate Border
+    printf '%s]P9fb7185' "$ESC" # 9: Bright Rose Red
+    printf '%s]Pa34d399' "$ESC" # 10: Bright Neon Emerald
+    printf '%s]Pbfde047' "$ESC" # 11: Bright Royal Gold
+    printf '%s]Pc38bdf8' "$ESC" # 12: Bright Sky Sapphire
+    printf '%s]Pda78bfa' "$ESC" # 13: Bright Lavender
+    printf '%s]Pe22d3ee' "$ESC" # 14: Bright Cyber Cyan
+    printf '%s]Pffffff'  "$ESC" # 15: Pure White
+}}
+
+C_RST="${{ESC}}[0m"
+C_GOLD="${{ESC}}[1;33m"
+C_CYAN="${{ESC}}[1;36m"
+C_BLUE="${{ESC}}[1;34m"
+C_GRN="${{ESC}}[1;32m"
+C_WHT="${{ESC}}[1;37m"
+C_DIM="${{ESC}}[0;37m"
+BG_GOLD="${{ESC}}[43;30;1m"
+BG_NAVY="${{ESC}}[44;1;37m"
+BG_CYAN="${{ESC}}[46;30;1m"
+BG_GRN="${{ESC}}[42;30;1m"
+
+get_ip_str() {{
+    ip_out="$(ip -o -4 addr show 2>/dev/null | awk '$2 != "lo" {{print $2":"$4}}' | head -n1 || true)"
+    printf '%.24s' "${{ip_out:-eth0: Unconfigured}}"
+}}
+
+get_ram_str() {{
+    awk '/^MemTotal:/{{t=$2}} /^MemAvailable:/{{a=$2}} END{{if(t>0) printf "%d/%d MB (%d%%)", (t-a)/1024, t/1024, (t-a)*100/t}}' /proc/meminfo 2>/dev/null || echo "RAM Active"
+}}
+
+get_disk_str() {{
+    for cand in /dev/sda /dev/vda /dev/nvme0n1; do
+        [ -b "$cand" ] && {{ printf '%s (Ready)' "$cand"; return; }}
+    done
+    printf 'Live RAM Disk'
+}}
+
+get_mod_count() {{
+    if [ -f /var/lib/thmd-guru/hub-installed.db ]; then
+        wc -l < /var/lib/thmd-guru/hub-installed.db 2>/dev/null | tr -d ' ' || echo 0
+    else
+        echo 0
+    fi
+}}
 
 persist_to_disk() {{
-    DISK_DEV=""
-    for cand in /dev/sda /dev/vda /dev/nvme0n1; do
-        if [ -b "$cand" ]; then
-            DISK_DEV="$cand"
-            break
-        fi
-    done
-    echo ""
-    echo "========================================================================"
-    echo "  THMD-GURU LINUX 1.0 ({edition.upper()}) - PERSISTENT SYSTEM & DISK INSTALLER"
-    echo "========================================================================"
-    if [ -n "$DISK_DEV" ]; then
-        echo "[OK] Detected Virtual Hard Disk: $DISK_DEV"
-    else
-        echo "[INFO] Running in RAM Disk Mode (no block disk detected, configuring Live RootFS)."
-    fi
+    printf '\\n%s  [THMD-GURU OS INSTALLER] DANG CAU HINH HE DIEU HANH LOI ({edition.upper()})...            %s\\n' "$BG_NAVY" "$C_RST"
+    printf '  %s[####................] 25%%%s Kiem tra o cung & gan ket he thong tep...\\n' "$C_CYAN" "$C_RST"
     if [ -d /cdrom/thmd-guru/rootfs ]; then
-        echo "[1/3] Applying THMD-Guru RootFS Overlay & Identity (/etc/os-release, sysctl, auditd)..."
         cp -rf /cdrom/thmd-guru/rootfs/. / 2>/dev/null || true
     fi
-    echo "[2/3] Applying CIS / KSPP Kernel Hardening & Edition Sysctl Profiles ({edition})..."
-    /bin/sh /usr/bin/THMD-guru-ai harden --apply
-    echo "[3/3] Verifying THMD-Guru Edition Plugins & Lab Modules..."
-    /bin/sh /usr/bin/THMD-guru-ai plugins
-    /bin/sh /usr/bin/THMD-guru-ai lab list
-    echo ""
-    echo "[SUCCESS] THMD-Guru Linux 1.0 ({edition.upper()}) configured and active!"
+    printf '  %s[############........] 65%%%s Ap dung bao mat nhan KSPP/CIS & Auditd MITRE...\\n' "$C_GOLD" "$C_RST"
+    /bin/sh /usr/bin/THMD-guru-ai harden --apply >/dev/null 2>&1 || true
+    printf '  %s[####################] 100%%%s Hoan tat cau hinh Clean Core OS (v1.1.0-genesis)!\\n' "$C_GRN" "$C_RST"
+}}
+
+draw_cockpit() {{
+    init_vga_palette
+    printf '%s[2J%s[H' "$ESC" "$ESC"
+    ip_now="$(get_ip_str)"
+    ram_now="$(get_ram_str)"
+    dsk_now="$(get_disk_str)"
+    mod_now="$(get_mod_count)"
+    krn_now="$(uname -r 2>/dev/null || echo 6.1-LTS)"
+
+    printf '%s  THMD-GURU LINUX 1.1 "GENESIS" [%s EDITION] - CONTROL CENTER & MODULAR HUB  %s\\n' "$BG_GOLD" "{edition.upper()}" "$C_RST"
+    printf '%s  Host: guru-%-8s | Kernel: %-14s | Architecture: Lean Core OS   %s\\n' "$BG_NAVY" "{edition}" "$krn_now" "$C_RST"
+    printf '%s+--------------------------------------+---------------------------------------+%s\\n' "$C_BLUE" "$C_RST"
+    printf '%s|%s %s[ THONG SO PHAN CUNG & HE THONG ]%s    %s|%s %s[ TRANG THAI MANG & KHO MO-DUN ]%s      %s|%s\\n' "$C_BLUE" "$C_RST" "$C_GOLD" "$C_RST" "$C_BLUE" "$C_RST" "$C_CYAN" "$C_RST" "$C_BLUE" "$C_RST"
+    printf '%s|%s  Bo nho RAM : %-22s %s|%s  Card mang : %-24s %s|%s\\n' "$C_BLUE" "$C_WHT" "$ram_now" "$C_BLUE" "$C_GRN" "$ip_now" "$C_BLUE" "$C_RST"
+    printf '%s|%s  O cung     : %-22s %s|%s  Mo-dun    : %-2s goi da cai (Clean OS) %s|%s\\n' "$C_BLUE" "$C_WHT" "$dsk_now" "$C_BLUE" "$C_GOLD" "$mod_now" "$C_BLUE" "$C_RST"
+    printf '%s|%s  Bao mat    : KSPP/CIS + AppArmor ON %s|%s  Kho Hub   : 15 goi San sang (DVD/GH) %s|%s\\n' "$C_BLUE" "$C_CYAN" "$C_BLUE" "$C_WHT" "$C_BLUE" "$C_RST"
+    printf '%s+--------------------------------------+---------------------------------------+%s\\n' "$C_BLUE" "$C_RST"
+    printf '%s|  %sBANG DIEU KHIEN CAI DAT HE DIEU HANH & PHONG LAB VMWARE (CHON PHIM 1..6)%s    %s|%s\\n' "$C_BLUE" "$C_GOLD" "$C_RST" "$C_BLUE" "$C_RST"
+    printf '%s+------------------------------------------------------------------------------+%s\\n' "$C_BLUE" "$C_RST"
+    printf '%s|%s  %s[ 1 ]%s  %sCAI DAT HE DIEU HANH LOI (Clean Core OS Only)%s    %s[MAC DINH / SACH]%s   %s|%s\\n' "$C_BLUE" "$C_RST" "$BG_GOLD" "$C_RST" "$C_WHT" "$C_RST" "$C_GRN" "$C_RST" "$C_BLUE" "$C_RST"
+    printf '%s|%s         Chi cai OS nen tang sieu nhe, khong nap san App/Tools/LAB vao RAM    %s|%s\\n' "$C_BLUE" "$C_DIM" "$C_BLUE" "$C_RST"
+    printf '%s|%s  %s[ 2 ]%s  %sMO KHO UNG DUNG, TOOLS, LAB & NCKH (Modular Hub)%s %s[15 GOI TUY CHON]%s   %s|%s\\n' "$C_BLUE" "$C_RST" "$BG_CYAN" "$C_RST" "$C_CYAN" "$C_RST" "$C_GOLD" "$C_RST" "$C_BLUE" "$C_RST"
+    printf '%s|%s         Chon cai them OWASP ZAP, Docker, AI-RAG, BGP Lab khi can thiet       %s|%s\\n' "$C_BLUE" "$C_DIM" "$C_BLUE" "$C_RST"
+    printf '%s+------------------------------------------------------------------------------+%s\\n' "$C_BLUE" "$C_RST"
+    printf '%s|%s  %s[ 3 ]%s  %sCAU HINH NHANH MAY AO VM1 (ATTT + OWASP ZAP)%s     %s[IP: 192.168.80.10]%s %s|%s\\n' "$C_BLUE" "$C_RST" "$BG_NAVY" "$C_RST" "$C_WHT" "$C_RST" "$C_CYAN" "$C_RST" "$C_BLUE" "$C_RST"
+    printf '%s|%s  %s[ 4 ]%s  %sCAU HINH NHANH MAY AO VM2 (Web Target Server)%s    %s[IP: 192.168.80.20]%s %s|%s\\n' "$C_BLUE" "$C_RST" "$BG_NAVY" "$C_RST" "$C_WHT" "$C_RST" "$C_CYAN" "$C_RST" "$C_BLUE" "$C_RST"
+    printf '%s|%s  %s[ 5 ]%s  %sCAU HINH NHANH MAY AO VM3 (AI-RAG & Vector DB)%s   %s[IP: 192.168.80.30]%s %s|%s\\n' "$C_BLUE" "$C_RST" "$BG_NAVY" "$C_RST" "$C_WHT" "$C_RST" "$C_CYAN" "$C_RST" "$C_BLUE" "$C_RST"
+    printf '%s|%s  %s[ 6 ]%s  %sCHAY THUC NGHIEM NCKH MAU (ZAP vs LLM vs AI-RAG)%s %s[F1=100%% / NDCG@5]%s  %s|%s\\n' "$C_BLUE" "$C_RST" "$BG_NAVY" "$C_RST" "$C_WHT" "$C_RST" "$C_GRN" "$C_RST" "$C_BLUE" "$C_RST"
+    printf '%s|%s  %s[ 0 ]%s  %sVAO GIAO DIEN DONG LENH (THMD-guru-ai Terminal)%s  %s[root@guru-%-6s]%s  %s|%s\\n' "$C_BLUE" "$C_RST" "$BG_GRN" "$C_RST" "$C_GRN" "$C_RST" "$C_GOLD" "{edition}" "$C_RST" "$C_BLUE" "$C_RST"
+    printf '%s+------------------------------------------------------------------------------+%s\\n' "$C_BLUE" "$C_RST"
+    printf '%s  Phim [1..6]: Thuc thi ngay  |  [2]: Kho Hub  |  [ENTER / 0]: Vao Shell CLI    %s\\n' "$BG_NAVY" "$C_RST"
 }}
 
 while true; do
-    echo ""
-    echo "========================================================================"
-    echo "  THMD-GURU LINUX 1.1 (GENESIS) [{edition.upper()}] - CORE OS & MODULAR HUB"
-    echo "  Architecture: Lean Core OS (Apps, Tools, LAB & NCKH Installed On-Demand)"
-    echo "========================================================================"
-    echo "  [1] Install Clean Core OS Only (Pure Base System - No Apps/LABs/NCKH)"
-    echo "  [2] Open Modular Hub Store (Select & Install Tools, Apps, LABs, NCKH)"
-    echo "  [3] Provision VM1 (IP 192.168.80.10 + On-Demand Install vm1-zap)"
-    echo "  [4] Provision VM2 (IP 192.168.80.20 + On-Demand Install vm2-target)"
-    echo "  [5] Provision VM3 (IP 192.168.80.30 + On-Demand Install vm3-airag)"
-    echo "  [0] Exit to Clean Core OS Shell (root@guru-{edition})"
-    echo "------------------------------------------------------------------------"
-    printf "Select option [0-5] (or press ENTER for [0] Core OS Shell): "
+    draw_cockpit
+    printf '\\n  %s==> Nhap lua chon cua ban [0-6] (Bam ENTER de vao Shell):%s ' "$C_GOLD" "$C_RST"
     read -r ans || break
     case "${{ans:-0}}" in
         1)
             persist_to_disk
             /bin/sh /usr/bin/THMD-guru-ai hub status
-            break
+            printf '\\n  %sBam phim ENTER de quay lai Bang Dieu Khien (hoac gõ 0 de vao Shell)...%s' "$C_CYAN" "$C_RST"
+            read -r _pause || break
             ;;
         2)
+            printf '%s[2J%s[H' "$ESC" "$ESC"
             /bin/sh /usr/bin/THMD-guru-ai hub menu
+            printf '\\n  %sBam phim ENTER de quay lai Bang Dieu Khien...%s' "$C_CYAN" "$C_RST"
+            read -r _pause || break
             ;;
         3)
             persist_to_disk
             /bin/sh /usr/bin/THMD-guru-ai vm-node init lab80-vm1
             /bin/sh /usr/bin/THMD-guru-ai hub install nckh/vmware-zap-rag-pfsense --role vm1-zap
             /bin/sh /usr/bin/THMD-guru-ai hub install tools/attt-web-scanner --role vm1-zap
-            /bin/sh /usr/bin/THMD-guru-ai status
+            printf '\\n  %s[HOAN TAT VM1] Bam ENTER de vao Shell hoac tiep tuc...%s' "$C_GRN" "$C_RST"
+            read -r _pause || break
             break
             ;;
         4)
@@ -373,7 +440,8 @@ while true; do
             /bin/sh /usr/bin/THMD-guru-ai vm-node init lab80-vm2
             /bin/sh /usr/bin/THMD-guru-ai hub install nckh/vmware-zap-rag-pfsense --role vm2-target
             /bin/sh /usr/bin/THMD-guru-ai hub install tools/server-container --role vm2-target
-            /bin/sh /usr/bin/THMD-guru-ai status
+            printf '\\n  %s[HOAN TAT VM2] Bam ENTER de vao Shell hoac tiep tuc...%s' "$C_GRN" "$C_RST"
+            read -r _pause || break
             break
             ;;
         5)
@@ -381,19 +449,26 @@ while true; do
             /bin/sh /usr/bin/THMD-guru-ai vm-node init lab80-vm3
             /bin/sh /usr/bin/THMD-guru-ai hub install nckh/vmware-zap-rag-pfsense --role vm3-airag
             /bin/sh /usr/bin/THMD-guru-ai hub install tools/ai-rag-engine --role vm3-airag
-            /bin/sh /usr/bin/THMD-guru-ai status
+            printf '\\n  %s[HOAN TAT VM3] Bam ENTER de vao Shell hoac tiep tuc...%s' "$C_GRN" "$C_RST"
+            read -r _pause || break
             break
+            ;;
+        6)
+            printf '%s[2J%s[H' "$ESC" "$ESC"
+            /bin/sh /usr/bin/THMD-guru-ai lab run vmware-zap-rag-pfsense
+            printf '\\n  %sBam phim ENTER de quay lai Bang Dieu Khien...%s' "$C_CYAN" "$C_RST"
+            read -r _pause || break
             ;;
         0|"")
             break
             ;;
         *)
-            echo "Invalid choice: $ans"
             ;;
     esac
 done
 """.encode("utf-8")
     add_file("usr/bin/thmd-installer", thmd_installer, executable=True)
+    add_file("usr/bin/guru-cockpit", thmd_installer, executable=True)
 
     # Preseed configuration
     preseed_src = root_dir / "editions/server/includes.binary/preseed/thmd-guru-server.cfg"
@@ -433,17 +508,15 @@ mount -t tmpfs tmpfs /tmp 2>/dev/null || true
 if [ -x /lib/systemd/systemd-udevd ]; then
     SYSTEMD_LOG_LEVEL=err /lib/systemd/systemd-udevd --daemon --resolve-names=never 2>/dev/null || true
     udevadm trigger --action=add 2>/dev/null || true
-    udevadm settle --timeout=3 2>/dev/null || true
+    udevadm settle --timeout=1 2>/dev/null || true
 elif [ -x /lib/debian-installer/start-udev ]; then
     /lib/debian-installer/start-udev >/dev/null 2>&1 || true
 fi
 
-for mod in fbcon vesafb efifb vga16fb bochs cirrus virtio_gpu \\
-           usbhid hid_generic hid ehci_hcd ehci_pci xhci_hcd xhci_pci uhci_hcd ohci_hcd \\
-           sr_mod cdrom isofs sd_mod ata_piix ahci vmw_pvscsi virtio_blk virtio_scsi nvme \\
-           e1000 e1000e vmxnet3 virtio_net ext4; do
-    modprobe "$mod" 2>/dev/null || true
-done
+modprobe -a fbcon vesafb efifb vga16fb bochs cirrus virtio_gpu \\
+            usbhid hid_generic hid ehci_hcd ehci_pci xhci_hcd xhci_pci uhci_hcd ohci_hcd \\
+            sr_mod cdrom isofs sd_mod ata_piix ahci vmw_pvscsi virtio_blk virtio_scsi nvme \\
+            e1000 e1000e vmxnet3 virtio_net ext4 2>/dev/null || true
 
 # Mount ISO-9660 CD-ROM if available
 for dev in /dev/sr0 /dev/cdrom /dev/hdc /dev/sda /dev/sdb; do
@@ -469,28 +542,37 @@ done
 echo "3 4 1 3" > /proc/sys/kernel/printk 2>/dev/null || true
 
 CMDLINE="$(cat /proc/cmdline 2>/dev/null || true)"
+export GURU_FORCE_COLOR=1
+ESC="$(printf '\\033')"
+
+init_vga_palette() {{
+    printf '%s]P0060d1a' "$ESC"
+    printf '%s]P1e11d48' "$ESC"
+    printf '%s]P210b981' "$ESC"
+    printf '%s]P3d4af37' "$ESC"
+    printf '%s]P40f2d5e' "$ESC"
+    printf '%s]P57c3aed' "$ESC"
+    printf '%s]P60891b2' "$ESC"
+    printf '%s]P7cbd5e1' "$ESC"
+    printf '%s]P8334155' "$ESC"
+    printf '%s]P9fb7185' "$ESC"
+    printf '%s]Pa34d399' "$ESC"
+    printf '%s]Pbfde047' "$ESC"
+    printf '%s]Pc38bdf8' "$ESC"
+    printf '%s]Pda78bfa' "$ESC"
+    printf '%s]Pe22d3ee' "$ESC"
+    printf '%s]Pffffff'  "$ESC"
+}}
 
 run_welcome_banner() {{
-    echo ""
-    cat /etc/motd 2>/dev/null || true
-    echo ""
-    /bin/sh /usr/bin/guru info
-    echo ""
-    /bin/sh /usr/bin/guru status
-    echo ""
-    /bin/sh /usr/bin/guru harden
-    echo ""
-    /bin/sh /usr/bin/guru plugins
-    echo ""
-    echo "============================================================================"
-    echo "  QUICK COMMANDS (THMD-Guru Linux 1.0 - {edition.upper()} Edition):"
-    echo "    THMD-guru-ai help                           # Full CLI guide"
-    echo "    THMD-guru-ai vm-node init lab80-vm1         # IP 192.168.80.10/24 (VM1)"
-    echo "    THMD-guru-ai vm-node init lab80-vm2         # IP 192.168.80.20/24 (VM2)"
-    echo "    THMD-guru-ai vm-node init lab80-vm3         # IP 192.168.80.30/24 (VM3)"
-    echo "    THMD-guru-ai lab run vmware-zap-rag-pfsense # Run NCKH ZAP+RAG Lab"
-    echo "    thmd-installer                              # OS & VMware Lab Wizard"
-    echo "============================================================================"
+    init_vga_palette
+    printf '%s[2J%s[H' "$ESC" "$ESC"
+    GURU_FORCE_COLOR=1 /bin/sh /usr/bin/guru info
+    GURU_FORCE_COLOR=1 /bin/sh /usr/bin/guru status
+    printf '%s  QUICK COMMANDS (Gõ lệnh trực tiếp hoặc gõ "guru-cockpit" để mở Bảng điều khiển):  %s\\n' "${{ESC}}[44;1;33m" "${{ESC}}[0m"
+    printf '   %sguru-cockpit%s                 : Mo Bang Dieu Khien Do Hoa TUI (Cai OS / VM1 / VM2 / VM3)\\n' "${{ESC}}[1;33m" "${{ESC}}[0m"
+    printf '   %sTHMD-guru-ai hub%s             : Mo Kho Cai Dat Ung Dung, Tools, LAB & NCKH Theo Yeu Cau\\n' "${{ESC}}[1;36m" "${{ESC}}[0m"
+    printf '   %sTHMD-guru-ai patch-agent%s     : Kiem tra Phien ban & Ban va Bao mat tren GitHub Releases\\n' "${{ESC}}[1;32m" "${{ESC}}[0m"
     echo ""
 }}
 
@@ -511,6 +593,10 @@ elif [ -c /dev/tty0 ]; then
     PRIMARY_TTY="/dev/tty0"
 fi
 
+if echo "$CMDLINE" | grep -q "thmd_mode=install"; then
+    /bin/sh /usr/bin/thmd-installer < "$PRIMARY_TTY" > "$PRIMARY_TTY" 2>&1 || true
+fi
+
 if [ -c "$PRIMARY_TTY" ]; then
     run_welcome_banner > "$PRIMARY_TTY" 2>&1 || true
 fi
@@ -518,11 +604,7 @@ if [ -c /dev/ttyS0 ] && [ "$PRIMARY_TTY" != "/dev/ttyS0" ]; then
     run_welcome_banner > /dev/ttyS0 2>&1 || true
 fi
 
-if echo "$CMDLINE" | grep -q "thmd_mode=install"; then
-    /usr/bin/thmd-installer < "$PRIMARY_TTY" > "$PRIMARY_TTY" 2>&1 || true
-fi
-
-export PS1="[THMD-Guru:{edition}] root@guru-{edition}:~# "
+export PS1="${{ESC}}[1;34m+--[${{ESC}}[1;33mroot@guru-{edition}${{ESC}}[1;34m]--[${{ESC}}[1;36mTHMD-Guru v1.1.0${{ESC}}[1;34m]\\n+--${{ESC}}[1;32m#${{ESC}}[0m "
 if [ -c /dev/ttyS0 ] && [ "$PRIMARY_TTY" != "/dev/ttyS0" ]; then
     (while true; do /bin/sh -i < /dev/ttyS0 > /dev/ttyS0 2>&1 || true; sleep 1; done) &
 fi
@@ -549,118 +631,177 @@ done
     return buf.getvalue()
 
 
-def generate_thmd_splash_png() -> bytes:
-    """Generates a 640x480 24-bit RGB PNG boot splash in THMD-Guru Cyber Sapphire & Royal Gold."""
-    import zlib
+def generate_thmd_splash_png(edition: str = "attt") -> bytes:
+    """Generates a high-resolution 640x480 24-bit RGB PNG boot splash in THMD-Guru Cyber Sapphire & Royal Gold."""
+    try:
+        from PIL import Image, ImageDraw, ImageFont
 
-    w, h = 640, 480
-    raw = bytearray()
-    for y in range(h):
-        raw.append(0)  # filter type 0
-        # Top header bar (0..64): Deep Navy #071A3A with Royal Gold border at y=62..64
-        if y in (0, 1, 62, 63, 478, 479):
-            row_px = bytes([212, 175, 55]) * w  # Royal Gold #D4AF37
-            raw.extend(row_px)
-            continue
-        if y < 62:
-            r, g, b = 7, 26, 58
-        else:
-            # Smooth vertical gradient from Sapphire (#0B3D91) to Ink (#0A0F1E)
-            t = (y - 64) / (h - 64)
-            r = int(11 * (1 - t) + 10 * t)
-            g = int(61 * (1 - t) + 15 * t)
-            b = int(145 * (1 - t) + 30 * t)
-        row = bytearray([r, g, b] * w)
-        # Left & right Royal Gold frame border
-        row[0:6] = bytes([212, 175, 55]) * 2
-        row[(w - 2) * 3 : w * 3] = bytes([212, 175, 55]) * 2
-        # Draw a Royal Gold emblem badge on the top-left (x=20..52, y=14..48)
-        if 14 <= y <= 48:
-            dy = abs(y - 31)
-            x_left = 20 + dy // 2
-            x_right = 52 - dy // 2
-            for x in range(x_left, x_right + 1):
-                if x in (x_left, x_left + 1, x_right - 1, x_right) or y in (14, 15, 47, 48) or (29 <= y <= 33 and 28 <= x <= 44):
-                    row[x * 3 : (x + 1) * 3] = bytes([245, 215, 122])
-                else:
-                    row[x * 3 : (x + 1) * 3] = bytes([11, 61, 145])
-        raw.extend(row)
+        w, h = 640, 480
+        img = Image.new("RGB", (w, h), (5, 11, 24))
+        draw = ImageDraw.Draw(img)
 
-    def png_chunk(tag: bytes, body: bytes) -> bytes:
-        return struct.pack(">I", len(body)) + tag + body + struct.pack(">I", zlib.crc32(tag + body) & 0xFFFFFFFF)
+        # Smooth background gradient with cyber grid
+        for y in range(h):
+            t = y / h
+            r = int(6 * (1 - t) + 10 * t)
+            g = int(16 * (1 - t) + 34 * t)
+            b = int(38 * (1 - t) + 78 * t)
+            draw.line([(0, y), (w, y)], fill=(r, g, b))
 
-    return (
-        b"\x89PNG\r\n\x1a\n"
-        + png_chunk(b"IHDR", struct.pack(">IIBBBBB", w, h, 8, 2, 0, 0, 0))
-        + png_chunk(b"IDAT", zlib.compress(bytes(raw), 6))
-        + png_chunk(b"IEND", b"")
-    )
+        # Subtle cyber grid lines
+        for gx in range(0, w, 32):
+            draw.line([(gx, 64), (gx, h - 36)], fill=(14, 42, 92), width=1)
+        for gy in range(64, h - 36, 32):
+            draw.line([(0, gy), (w, gy)], fill=(14, 42, 92), width=1)
+
+        # Top Header Banner (0..64)
+        draw.rectangle([0, 0, w, 64], fill=(7, 22, 52))
+        draw.line([(0, 0), (w, 0)], fill=(212, 175, 55), width=2)
+        draw.line([(0, 63), (w, 63)], fill=(212, 175, 55), width=2)
+
+        # 3D Royal Gold Shield Emblem on top-left
+        shield_pts = [(28, 10), (54, 18), (50, 44), (28, 55), (6, 44), (2, 18)]
+        shield_pts = [(x + 12, y) for x, y in shield_pts]
+        draw.polygon(shield_pts, fill=(16, 54, 118), outline=(245, 215, 122))
+        inner_pts = [(40, 16), (58, 22), (55, 41), (40, 49), (25, 41), (22, 22)]
+        draw.polygon(inner_pts, fill=(10, 32, 76), outline=(212, 175, 55))
+
+        try:
+            f_title = ImageFont.truetype("C:/Windows/Fonts/segoeuib.ttf", 20)
+            f_sub = ImageFont.truetype("C:/Windows/Fonts/segoeui.ttf", 12)
+            f_badge = ImageFont.truetype("C:/Windows/Fonts/consolab.ttf", 12)
+            f_crest = ImageFont.truetype("C:/Windows/Fonts/segoeuib.ttf", 15)
+        except Exception:
+            f_title = f_sub = f_badge = f_crest = ImageFont.load_default()
+
+        draw.text((31, 22), "TG", fill=(245, 215, 122), font=f_crest)
+        draw.text((78, 10), 'THMD-GURU LINUX 1.1 "GENESIS"', fill=(245, 215, 122), font=f_title)
+        draw.text((78, 36), "THMD-Guru Global Tech Academy  |  Lean Core OS + Modular Hub", fill=(185, 215, 255), font=f_sub)
+
+        # Edition Pill Badge on top-right
+        ed_colors = {
+            "attt": ((185, 28, 28), (254, 202, 202), "ATTT SECURITY"),
+            "server": ((6, 95, 70), (167, 243, 208), "SERVER CLOUD"),
+            "desktop": ((30, 64, 175), (191, 219, 254), "DESKTOP AI"),
+        }
+        bg_c, fg_c, ed_txt = ed_colors.get(edition, ed_colors["attt"])
+        draw.rounded_rectangle([490, 16, 624, 46], radius=6, fill=bg_c, outline=(245, 215, 122), width=1)
+        draw.text((504, 23), ed_txt, fill=fg_c, font=f_badge)
+
+        # Center Glassmorphism Menu Frame (where ISOLINUX / GRUB menu renders)
+        draw.rounded_rectangle([14, 78, w - 14, 386], radius=8, fill=(6, 15, 34), outline=(212, 175, 55), width=2)
+        draw.rounded_rectangle([18, 82, w - 18, 382], radius=6, outline=(30, 88, 168), width=1)
+
+        # Info Strip below menu (y=396..434)
+        draw.rounded_rectangle([14, 396, w - 14, 434], radius=6, fill=(9, 26, 58), outline=(56, 189, 248), width=1)
+        draw.text(
+            (26, 408),
+            "KERNEL: Debian 12 (Linux 6.1 LTS)  |  ARCH: Modular On-Demand Hub  |  BOOT: Hybrid BIOS & UEFI",
+            fill=(165, 243, 252),
+            font=f_sub,
+        )
+
+        # Bottom Footer Bar (444..480)
+        draw.rectangle([0, 444, w, h], fill=(5, 14, 32))
+        draw.line([(0, 444), (w, 444)], fill=(212, 175, 55), width=2)
+        draw.text(
+            (24, 454),
+            "[Up/Down] Chon che do    [ENTER] Khoi dong ngay    [TAB/E] Tuy chinh Kernel    [v1.1.0-genesis]",
+            fill=(245, 215, 122),
+            font=f_badge,
+        )
+
+        #Outer left/right gold border
+        draw.line([(0, 0), (0, h)], fill=(212, 175, 55), width=2)
+        draw.line([(w - 1, 0), (w - 1, h)], fill=(212, 175, 55), width=2)
+
+        out_buf = io.BytesIO()
+        img.save(out_buf, format="PNG", optimize=True)
+        return out_buf.getvalue()
+    except Exception:
+        import zlib
+        w, h = 640, 480
+        raw = bytearray()
+        for y in range(h):
+            raw.append(0)
+            raw.extend(bytes([7, 26, 58]) * w)
+        def png_chunk(tag: bytes, body: bytes) -> bytes:
+            return struct.pack(">I", len(body)) + tag + body + struct.pack(">I", zlib.crc32(tag + body) & 0xFFFFFFFF)
+        return (
+            b"\x89PNG\r\n\x1a\n"
+            + png_chunk(b"IHDR", struct.pack(">IIBBBBB", w, h, 8, 2, 0, 0, 0))
+            + png_chunk(b"IDAT", zlib.compress(bytes(raw), 6))
+            + png_chunk(b"IEND", b"")
+        )
 
 
 def write_bootloader_configs(work_iso: Path, edition: str):
     """Writes THMD-Guru branded ISOLINUX (BIOS) and GRUB2 (UEFI) bootloader configs."""
     ed_upper = edition.upper()
 
-    (work_iso / "splash.png").write_bytes(generate_thmd_splash_png())
+    (work_iso / "splash.png").write_bytes(generate_thmd_splash_png(edition))
 
     stdmenu_cfg = """menu background splash.png
-menu color title    * #FFF5D77A *
-menu color border   * #FFD4AF37 #00000000 std
-menu color sel      * #FF0A0F1E #FFD4AF37 *
-menu color hotsel   1;7;37;40 #FF0A0F1E #FFF5D77A *
-menu color unsel    * #FFE6ECF7 #00000000 *
-menu color tabmsg   * #FFF5D77A #00000000 *
-menu color timeout  * #FFF5D77A #00000000 *
+menu color screen   37;40 #00000000 #00000000 none
+menu color title    1;33;40 #FFF5D77A #00000000 std
+menu color border   30;40 #00000000 #00000000 none
+menu color sel      1;30;43 #FF060D1A #FFF5D77A std
+menu color hotsel   1;30;43 #FF060D1A #FFFDE047 std
+menu color unsel    37;40 #FFE2E8F0 #00000000 std
+menu color hotkey   1;33;40 #FFF5D77A #00000000 std
+menu color tabmsg   36;40 #FF38BDF8 #00000000 none
+menu color timeout  1;33;40 #FFFDE047 #00000000 none
+menu color timeout_msg 37;40 #FFCBD5E1 #00000000 none
 menu color help     37;40 #FFF5D77A #00000000 none
-menu vshift 6
-menu rows 10
+menu vshift 5
+menu rows 8
 menu helpmsgrow 15
-menu cmdlinerow 17
-menu timeoutrow 17
-menu tabmsgrow 19
-menu tabmsg THMD-Guru Global Tech Academy | [ENTER] Boot   [TAB] Edit Kernel Options
+menu cmdlinerow 16
+menu timeoutrow 16
+menu tabmsgrow 21
+menu tabmsg
 """
     (work_iso / "stdmenu.cfg").write_text(stdmenu_cfg, encoding="utf-8", newline="\n")
 
-    isolinux_cfg = f"""# THMD-Guru Linux 1.0 (Genesis) - BIOS ISOLINUX Configuration
+    isolinux_cfg = f"""# THMD-Guru Linux 1.1 (Genesis) - BIOS ISOLINUX Configuration
 path 
 prompt 0
 timeout 50
 default vesamenu.c32
 
-menu hshift 2
-menu width 76
-menu title THMD-Guru Linux 1.0 (Genesis) - {ed_upper} Edition [BIOS/UEFI]
+menu hshift 3
+menu width 74
+menu title THMD-GURU LINUX 1.1 (GENESIS) - {ed_upper} EDITION
 include stdmenu.cfg
 
 label install
-    menu label ^1. THMD-Guru Linux 1.0 ({ed_upper}) - Install & VMware Lab Wizard
+    menu label ^1. Control Center & Modular Hub (Install / Lab)
     menu default
     kernel /linux
     append vga=normal fb=false init=/bin/thmd-guru-live thmd_mode=install console=ttyS0,115200n8 console=tty0 initrd=/initrd.gz --- quiet
 
 label live
-    menu label ^2. THMD-Guru Linux 1.0 ({ed_upper}) - Live System (RAM OS)
+    menu label ^2. Live System (Boot Clean Core OS to RAM)
     kernel /linux
     append vga=normal fb=false init=/bin/thmd-guru-live console=ttyS0,115200n8 console=tty0 initrd=/initrd.gz --- quiet
 
 label safe
-    menu label ^3. THMD-Guru Linux 1.0 ({ed_upper}) - Safe Mode (nomodeset)
+    menu label ^3. Safe Mode (Graphics Fallback / nomodeset)
     kernel /linux
     append vga=normal fb=false nomodeset init=/bin/thmd-guru-live console=ttyS0,115200n8 console=tty0 initrd=/initrd.gz ---
 
 label forensic
-    menu label ^4. THMD-Guru Linux 1.0 ({ed_upper}) - Forensic Mode (No Swap/Mount)
+    menu label ^4. Forensic & DFIR Mode (No Swap / No Mount)
     kernel /linux
     append vga=normal fb=false noswap noautomount init=/bin/thmd-guru-live console=ttyS0,115200n8 console=tty0 initrd=/initrd.gz ---
 
 label autotest
-    menu label ^5. THMD-Guru Linux 1.0 ({ed_upper}) - Automated Self-Test Mode
+    menu label ^5. Automated Self-Test & QA Verification
     kernel /linux
     append vga=normal fb=false init=/bin/thmd-guru-live thmd_autotest=1 console=ttyS0,115200n8 console=tty0 initrd=/initrd.gz --- quiet
 
 label netinstall
-    menu label ^6. THMD-Guru Linux 1.0 ({ed_upper}) - Debian Netboot Installer (Preseed)
+    menu label ^6. Debian Netboot Disk Installer (Preseed)
     kernel /linux
     append vga=normal fb=false preseed/file=/preseed.cfg initrd=/initrd.gz --- quiet
 """

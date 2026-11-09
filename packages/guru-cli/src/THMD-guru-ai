@@ -13,7 +13,7 @@
 set -eu
 (set -o pipefail 2>/dev/null) && set -o pipefail
 
-GURU_VERSION="1.1.0"
+GURU_VERSION="1.1.1"
 GURU_CODENAME="Genesis"
 GURU_PLUGIN_DIR="${GURU_PLUGIN_DIR:-/usr/lib/guru/commands}"
 GURU_UPDATE_HOOK_DIR="${GURU_UPDATE_HOOK_DIR:-/usr/lib/guru/update.d}"
@@ -23,10 +23,11 @@ GURU_OS_RELEASE="${GURU_OS_RELEASE:-/etc/os-release}"
 PROG="${0##*/}"
 
 init_colors() {
-    if [ -t 1 ] && [ -z "${NO_COLOR:-}" ] && [ "${TERM:-dumb}" != "dumb" ]; then
+    if { [ -t 1 ] || [ "${GURU_FORCE_COLOR:-0}" = "1" ]; } && [ -z "${NO_COLOR:-}" ] && [ "${TERM:-linux}" != "dumb" ]; then
         GURU_COLOR=1
         ESC="$(printf '\033')"
         C_SAPPHIRE="${ESC}[1;34m"
+        C_CYAN="${ESC}[1;36m"
         C_GOLD="${ESC}[1;33m"
         C_LGOLD="${ESC}[0;33m"
         C_TEXT="${ESC}[1;37m"
@@ -34,11 +35,15 @@ init_colors() {
         C_DIM="${ESC}[2m"
         C_RED="${ESC}[1;31m"
         C_GREEN="${ESC}[1;32m"
+        BG_SAPPHIRE="${ESC}[44;1;37m"
+        BG_GOLD="${ESC}[43;30m"
+        BG_CYAN="${ESC}[46;30m"
+        BG_GREEN="${ESC}[42;30m"
         C_RESET="${ESC}[0m"
     else
         GURU_COLOR=0
-        C_SAPPHIRE='' C_GOLD='' C_LGOLD='' C_TEXT='' C_BOLD='' C_DIM=''
-        C_RED='' C_GREEN='' C_RESET=''
+        C_SAPPHIRE='' C_CYAN='' C_GOLD='' C_LGOLD='' C_TEXT='' C_BOLD='' C_DIM=''
+        C_RED='' C_GREEN='' BG_SAPPHIRE='' BG_GOLD='' BG_CYAN='' BG_GREEN='' C_RESET=''
     fi
 }
 
@@ -204,8 +209,8 @@ cmd_plugins() {
 cmd_info() {
     ed="$(edition)"
     name="$(os_field PRETTY_NAME)"
-    [ -n "$name" ] || name="THMD-Guru Linux 1.0 (Genesis)"
-    ver="$(cat "$GURU_ETC/version" 2>/dev/null || echo "1.0.0")"
+    [ -n "$name" ] || name="THMD-Guru Linux 1.1 (Genesis)"
+    ver="$(cat "$GURU_ETC/version" 2>/dev/null || echo "$GURU_VERSION")"
     usr="${USER:-$(id -un 2>/dev/null || echo root)}"
     hst="$(hostname 2>/dev/null || cat /etc/hostname 2>/dev/null || echo thmd-guru)"
     krn="$(uname -sr 2>/dev/null || echo Linux)"
@@ -213,19 +218,19 @@ cmd_info() {
     cpu="$(cpu_model)"
     mem="$(mem_human)"
     dsk="$(disk_human)"
+    ips="$(ip_addrs)"
 
-    printf '%s%-26s%s %s@%s\n' "$C_GOLD" " .====================." "$C_RESET" "${C_GOLD}${C_BOLD}${usr}${C_RESET}" "${C_GOLD}${C_BOLD}${hst}${C_RESET}"
-    printf '%s%-26s%s %s\n'   "$C_GOLD" " ||  _____   ____    ||" "$C_RESET" "${C_SAPPHIRE}--------------------------------------------${C_RESET}"
-    printf '%s%-26s%s %s %s\n' "$C_GOLD" " || |_   _| / ___|   ||" "$C_RESET" "${C_LGOLD}OS      ${C_RESET}" "$name"
-    printf '%s%-26s%s %s %s\n' "$C_GOLD" " ||   | |  | |  _    ||" "$C_RESET" "${C_LGOLD}Edition ${C_RESET}" "$(edition_label "$ed")"
-    printf '%s%-26s%s %s %s\n' "$C_GOLD" " ||   | |  | |_| |   ||" "$C_RESET" "${C_LGOLD}Version ${C_RESET}" "${ver} (Debian 12 Bookworm)"
-    printf '%s%-26s%s %s %s\n' "$C_GOLD" " ||   |_|   \\____|   ||" "$C_RESET" "${C_LGOLD}Kernel  ${C_RESET}" "$krn"
-    printf '%s%-26s%s %s %s\n' "$C_GOLD" "  \\\\    G U R U     //" "$C_RESET" "${C_LGOLD}Uptime  ${C_RESET}" "$upt"
-    printf '%s%-26s%s %s %s\n' "$C_GOLD" "   \\\\              //"  "$C_RESET" "${C_LGOLD}CPU     ${C_RESET}" "$cpu"
-    printf '%s%-26s%s %s %s\n' "$C_GOLD" "    \`\\\\==========//\`"  "$C_RESET" "${C_LGOLD}Memory  ${C_RESET}" "$mem"
-    printf '%s%-26s%s %s %s\n' "$C_GOLD" "       \`\\\\____//\`"     "$C_RESET" "${C_LGOLD}Disk /  ${C_RESET}" "$dsk"
-    printf '%-26s %s\n' "" "${C_GOLD}THMD-Guru Global Tech Academy (THMD-guru-ai)${C_RESET}"
-    printf '%-26s %s\n' "" "${C_DIM}Learn Deep. Build Real. Secure Everything.${C_RESET}"
+    printf '%s  THMD-GURU LINUX %s (%s) - %-45s %s\n' "$BG_SAPPHIRE" "$ver" "$GURU_CODENAME" "$(echo "$ed" | tr 'a-z' 'A-Z') EDITION" "$C_RESET"
+    printf '%s%-26s%s %s@%s %s[MODULAR LEAN CORE OS]%s\n' "$C_GOLD" "   .==================.   " "$C_RESET" "${C_GOLD}${C_BOLD}${usr}${C_RESET}" "${C_CYAN}${C_BOLD}${hst}${C_RESET}" "$C_GREEN" "$C_RESET"
+    printf '%s%-26s%s %s\n'   "$C_GOLD" "  /  _____   ____      \\  " "$C_RESET" "${C_SAPPHIRE}+----------------------------------------------------+${C_RESET}"
+    printf '%s%-26s%s %s %-10s : %s%s%s\n' "$C_GOLD" " |  |_   _| / ___|      | " "$C_RESET" "${C_SAPPHIRE}|${C_RESET}" "${C_GOLD}OS${C_RESET}" "$C_TEXT" "$name" "$C_RESET"
+    printf '%s%-26s%s %s %-10s : %s%s%s\n' "$C_CYAN" " |    | |  | |  _       | " "$C_RESET" "${C_SAPPHIRE}|${C_RESET}" "${C_GOLD}Edition${C_RESET}" "$C_CYAN" "$(edition_label "$ed")" "$C_RESET"
+    printf '%s%-26s%s %s %-10s : %s%s (Debian 12 Bookworm)%s\n' "$C_CYAN" " |    | |  | |_| |      | " "$C_RESET" "${C_SAPPHIRE}|${C_RESET}" "${C_GOLD}Version${C_RESET}" "$C_GREEN" "$ver" "$C_RESET"
+    printf '%s%-26s%s %s %-10s : %s\n' "$C_GOLD" " |    |_|   \\____|      | " "$C_RESET" "${C_SAPPHIRE}|${C_RESET}" "${C_GOLD}Kernel${C_RESET}" "$krn"
+    printf '%s%-26s%s %s %-10s : %s\n' "$C_GOLD" "  \\    G U R U  O S    /  " "$C_RESET" "${C_SAPPHIRE}|${C_RESET}" "${C_GOLD}CPU${C_RESET}" "$cpu"
+    printf '%s%-26s%s %s %-10s : %s  |  %sUptime:%s %s\n' "$C_GOLD" "   \\                  /   " "$C_RESET" "${C_SAPPHIRE}|${C_RESET}" "${C_GOLD}Memory${C_RESET}" "$mem" "$C_GOLD" "$C_RESET" "$upt"
+    printf '%s%-26s%s %s %-10s : %s  |  %sIPv4:%s %s\n' "$C_GOLD" "    '================'    " "$C_RESET" "${C_SAPPHIRE}|${C_RESET}" "${C_GOLD}Disk /${C_RESET}" "$dsk" "$C_GOLD" "$C_RESET" "${ips:-no-ip}"
+    printf '%-26s %s\n' "   [THMD-GURU ACADEMY]" "${C_SAPPHIRE}+----------------------------------------------------+${C_RESET}"
 }
 
 cmd_status() {
@@ -234,21 +239,16 @@ cmd_status() {
     vm_role="$(cat "$GURU_ETC/vm-role" 2>/dev/null || echo 'standalone')"
     if [ "${1:-}" = "--json" ]; then
         printf '{"cli":"THMD-guru-ai","edition":"%s","version":"%s","kernel":"%s","load":"%s","vm_role":"%s"}\n' \
-            "$ed" "$(cat "$GURU_ETC/version" 2>/dev/null || echo 1.0.0)" "$(uname -r)" "$load" "$vm_role"
+            "$ed" "$(cat "$GURU_ETC/version" 2>/dev/null || echo "$GURU_VERSION")" "$(uname -r)" "$load" "$vm_role"
         return 0
     fi
-    printf '%s%sTHMD-Guru Linux - System Health Status%s  (%s)\n' "$C_GOLD" "$C_BOLD" "$C_RESET" "$(edition_label "$ed")"
-    printf '%s%s%s\n' "$C_SAPPHIRE" "------------------------------------------------------------" "$C_RESET"
-    printf '  %-14s %s\n' "Host"      "$(hostname 2>/dev/null || cat /etc/hostname 2>/dev/null || echo thmd-guru)"
-    printf '  %-14s %s\n' "Edition"   "$(edition_label "$ed")"
-    printf '  %-14s %s\n' "VM Role"   "$vm_role"
-    printf '  %-14s %s\n' "Kernel"    "$(uname -sr)"
-    printf '  %-14s %s\n' "Uptime"    "$(uptime_human)"
-    printf '  %-14s %s\n' "Load Avg"  "$load"
-    printf '  %-14s %s\n' "Memory"    "$(mem_human)"
-    printf '  %-14s %s\n' "Disk /"    "$(disk_human)"
-    printf '  %-14s %s\n' "IPv4"      "$(ip_addrs)"
-    echo
+    printf '%s  SYSTEM TELEMETRY & SECURITY POSTURE - %-40s %s\n' "$BG_SAPPHIRE" "$(edition_label "$ed")" "$C_RESET"
+    printf '%s+------------------+------------------------------------------------------------+%s\n' "$C_SAPPHIRE" "$C_RESET"
+    printf '%s|%s %-16s %s|%s %-58s %s|%s\n' "$C_SAPPHIRE" "$C_GOLD" "Host / VM Role" "$C_SAPPHIRE" "$C_TEXT" "$(hostname 2>/dev/null || echo thmd-guru)  [Role: $vm_role]" "$C_SAPPHIRE" "$C_RESET"
+    printf '%s|%s %-16s %s|%s %-58s %s|%s\n' "$C_SAPPHIRE" "$C_GOLD" "Kernel & Uptime" "$C_SAPPHIRE" "$C_CYAN" "$(uname -sr)  |  Uptime: $(uptime_human)" "$C_SAPPHIRE" "$C_RESET"
+    printf '%s|%s %-16s %s|%s %-58s %s|%s\n' "$C_SAPPHIRE" "$C_GOLD" "Memory & Load" "$C_SAPPHIRE" "$C_GREEN" "RAM: $(mem_human)  |  Load: $load" "$C_SAPPHIRE" "$C_RESET"
+    printf '%s|%s %-16s %s|%s %-58s %s|%s\n' "$C_SAPPHIRE" "$C_GOLD" "Storage & IPv4" "$C_SAPPHIRE" "$C_TEXT" "Disk: $(disk_human)  |  IP: $(ip_addrs)" "$C_SAPPHIRE" "$C_RESET"
+    printf '%s+------------------+------------------------------------------------------------+%s\n' "$C_SAPPHIRE" "$C_RESET"
     ok "THMD-Guru Core Identity, MITRE Auditd & Kernel Sysctl Profiles Active"
 }
 
@@ -687,7 +687,7 @@ cmd_hub() {
         if is_mod_installed "$1"; then
             printf '%s[INSTALLED]%s' "$C_GREEN" "$C_RESET"
         else
-            printf '%s[ON-DEMAND]%s' "$C_DIM" "$C_RESET"
+            printf '%s[ON-DEMAND]%s' "$C_CYAN" "$C_RESET"
         fi
     }
 
@@ -780,33 +780,26 @@ cmd_hub() {
     }
 
     hub_print_catalog() {
-        printf '%s%s================================================================================%s\n' "$C_SAPPHIRE" "$C_BOLD" "$C_RESET"
-        printf '  %s%sTHMD-GURU MODULAR HUB - KHO CAI DAT UNG DUNG, TOOLS, LAB & NCKH THEO YEU CAU%s\n' "$C_GOLD" "$C_BOLD" "$C_RESET"
-        printf '%s%s================================================================================%s\n' "$C_SAPPHIRE" "$C_BOLD" "$C_RESET"
-        printf '  OS Loi (Core OS)  : THMD-Guru Linux %s (%s) - Lean Modular Architecture\n' "$GURU_VERSION" "$GURU_CODENAME"
-        printf '  Thu muc Mo-dun    : %s\n' "$hub_root"
-        printf '%s--------------------------------------------------------------------------------%s\n' "$C_SAPPHIRE" "$C_RESET"
-        printf '  %s[NHOM 1: UNG DUNG & BO CONG CU CHUYEN NGANH (TOOLS / ARSENAL)]%s\n' "$C_LGOLD" "$C_RESET"
-        printf '   [1]  %-30s %s - OWASP ZAP, SQLMap, Nikto, Gobuster\n' "tools/attt-web-scanner" "$(mod_badge tools/attt-web-scanner)"
-        printf '   [2]  %-30s %s - Nmap, Wireshark, Tshark, Tcpdump\n' "tools/attt-net-recon" "$(mod_badge tools/attt-net-recon)"
-        printf '   [3]  %-30s %s - Auditd MITRE, Lynis, YARA, Sleuthkit\n' "tools/attt-blue-dfir" "$(mod_badge tools/attt-blue-dfir)"
-        printf '   [4]  %-30s %s - Firejail Sandbox, Stealth IPv6/mDNS\n' "tools/attt-opsec-sandbox" "$(mod_badge tools/attt-opsec-sandbox)"
-        printf '   [5]  %-30s %s - Docker CE, Compose v2, Podman\n' "tools/server-container" "$(mod_badge tools/server-container)"
-        printf '   [6]  %-30s %s - Nginx, WAF, nftables, Cockpit :9090\n' "tools/server-web-waf" "$(mod_badge tools/server-web-waf)"
-        printf '   [7]  %-30s %s - FastAPI, Vector DB (FAISS), Ollama\n' "tools/ai-rag-engine" "$(mod_badge tools/ai-rag-engine)"
-        printf '   [8]  %-30s %s - Python uv, Node fnm, Rust, Go, C++\n' "tools/dev-workstation" "$(mod_badge tools/dev-workstation)"
-        echo
-        printf '  %s[NHOM 2: PHONG THI NGHIEM THUC HANH (HANDS-ON LABS)]%s\n' "$C_LGOLD" "$C_RESET"
-        printf '   [9]  %-30s %s - Dinh tuyen Doanh nghiep BGP/OSPF FRR\n' "lab/netops-bgp-sdn" "$(mod_badge lab/netops-bgp-sdn)"
-        printf '   [10] %-30s %s - Cum Web muc tieu (DVWA, Juice Shop)\n' "lab/webapp-vuln-range" "$(mod_badge lab/webapp-vuln-range)"
-        echo
-        printf '  %s[NHOM 3: DE TAI NGHIEN CUU KHOA HOC (NCKH SUITES - CAI THEO TUNG VAI TRO VM)]%s\n' "$C_LGOLD" "$C_RESET"
-        printf '   [11] %-30s %s - NCKH Standalone (1 may): ZAP + Hybrid RAG\n' "nckh/zap-rag-standalone" "$(mod_badge nckh/zap-rag-standalone)"
-        printf '   [12] %-30s %s - [VM1 192.168.80.10] May quet OWASP ZAP\n' "nckh/vmware (--role vm1-zap)" "$(mod_badge nckh/vmware-zap-rag-pfsense)"
-        printf '   [13] %-30s %s - [VM2 192.168.80.20] Web Server Muc tieu\n' "nckh/vmware (--role vm2-target)" "$(mod_badge nckh/vmware-zap-rag-pfsense)"
-        printf '   [14] %-30s %s - [VM3 192.168.80.30] May chu AI-RAG + LLM\n' "nckh/vmware (--role vm3-airag)" "$(mod_badge nckh/vmware-zap-rag-pfsense)"
-        printf '   [15] %-30s %s - Bo cham diem NCKH (Precision/F1/NDCG@5)\n' "nckh/vmware (--role evaluator)" "$(mod_badge nckh/vmware-zap-rag-pfsense)"
-        printf '%s================================================================================%s\n' "$C_SAPPHIRE" "$C_RESET"
+        printf '%s  THMD-GURU MODULAR HUB - KHO UNG DUNG, TOOLS, LAB & NCKH (v%-6s)         %s\n' "$BG_SAPPHIRE" "$GURU_VERSION" "$C_RESET"
+        printf '%s+----+------------------------------+-------------+--------------------------+%s\n' "$C_SAPPHIRE" "$C_RESET"
+        printf '%s|%s ID %s|%s TEN MO-DUN (MODULE ID)       %s|%s TRANG THAI  %s|%s MO TA GOI CAI DAT        %s|%s\n' "$C_SAPPHIRE" "$C_GOLD" "$C_SAPPHIRE" "$C_GOLD" "$C_SAPPHIRE" "$C_GOLD" "$C_SAPPHIRE" "$C_GOLD" "$C_SAPPHIRE" "$C_RESET"
+        printf '%s+----+------------------------------+-------------+--------------------------+%s\n' "$C_SAPPHIRE" "$C_RESET"
+        printf '%s|%s %s01%s | %-28s | %s | %-24s %s|%s\n' "$C_SAPPHIRE" "$C_RESET" "$C_GOLD" "$C_RESET" "tools/attt-web-scanner" "$(mod_badge tools/attt-web-scanner)" "OWASP ZAP, SQLMap, Nikto" "$C_SAPPHIRE" "$C_RESET"
+        printf '%s|%s %s02%s | %-28s | %s | %-24s %s|%s\n' "$C_SAPPHIRE" "$C_RESET" "$C_GOLD" "$C_RESET" "tools/attt-net-recon" "$(mod_badge tools/attt-net-recon)" "Nmap, Wireshark, Tshark" "$C_SAPPHIRE" "$C_RESET"
+        printf '%s|%s %s03%s | %-28s | %s | %-24s %s|%s\n' "$C_SAPPHIRE" "$C_RESET" "$C_GOLD" "$C_RESET" "tools/attt-blue-dfir" "$(mod_badge tools/attt-blue-dfir)" "Auditd, Lynis, Sleuthkit" "$C_SAPPHIRE" "$C_RESET"
+        printf '%s|%s %s04%s | %-28s | %s | %-24s %s|%s\n' "$C_SAPPHIRE" "$C_RESET" "$C_GOLD" "$C_RESET" "tools/attt-opsec-sandbox" "$(mod_badge tools/attt-opsec-sandbox)" "Firejail Sandbox,Stealth" "$C_SAPPHIRE" "$C_RESET"
+        printf '%s|%s %s05%s | %-28s | %s | %-24s %s|%s\n' "$C_SAPPHIRE" "$C_RESET" "$C_GOLD" "$C_RESET" "tools/server-container" "$(mod_badge tools/server-container)" "Docker CE,Compose,Podman" "$C_SAPPHIRE" "$C_RESET"
+        printf '%s|%s %s06%s | %-28s | %s | %-24s %s|%s\n' "$C_SAPPHIRE" "$C_RESET" "$C_GOLD" "$C_RESET" "tools/server-web-waf" "$(mod_badge tools/server-web-waf)" "Nginx, WAF, Cockpit:9090" "$C_SAPPHIRE" "$C_RESET"
+        printf '%s|%s %s07%s | %-28s | %s | %-24s %s|%s\n' "$C_SAPPHIRE" "$C_RESET" "$C_GOLD" "$C_RESET" "tools/ai-rag-engine" "$(mod_badge tools/ai-rag-engine)" "FastAPI, FAISS DB,Ollama" "$C_SAPPHIRE" "$C_RESET"
+        printf '%s|%s %s08%s | %-28s | %s | %-24s %s|%s\n' "$C_SAPPHIRE" "$C_RESET" "$C_GOLD" "$C_RESET" "tools/dev-workstation" "$(mod_badge tools/dev-workstation)" "Python uv, Node, Rust,Go" "$C_SAPPHIRE" "$C_RESET"
+        printf '%s|%s %s09%s | %-28s | %s | %-24s %s|%s\n' "$C_SAPPHIRE" "$C_RESET" "$C_GOLD" "$C_RESET" "lab/netops-bgp-sdn" "$(mod_badge lab/netops-bgp-sdn)" "FRRouting BGP/OSPF Lab" "$C_SAPPHIRE" "$C_RESET"
+        printf '%s|%s %s10%s | %-28s | %s | %-24s %s|%s\n' "$C_SAPPHIRE" "$C_RESET" "$C_GOLD" "$C_RESET" "lab/webapp-vuln-range" "$(mod_badge lab/webapp-vuln-range)" "DVWA, Juice Shop,WebGoat" "$C_SAPPHIRE" "$C_RESET"
+        printf '%s|%s %s11%s | %-28s | %s | %-24s %s|%s\n' "$C_SAPPHIRE" "$C_RESET" "$C_GOLD" "$C_RESET" "nckh/zap-rag-standalone" "$(mod_badge nckh/zap-rag-standalone)" "NCKH 1 May: ZAP + AI-RAG" "$C_SAPPHIRE" "$C_RESET"
+        printf '%s|%s %s12%s | %-28s | %s | %-24s %s|%s\n' "$C_SAPPHIRE" "$C_RESET" "$C_GOLD" "$C_RESET" "nckh/vmware (role: vm1-zap)" "$(mod_badge nckh/vmware-zap-rag-pfsense)" "VM1 (.80.10) ZAP Scanner" "$C_SAPPHIRE" "$C_RESET"
+        printf '%s|%s %s13%s | %-28s | %s | %-24s %s|%s\n' "$C_SAPPHIRE" "$C_RESET" "$C_GOLD" "$C_RESET" "nckh/vmware (role: vm2-web)" "$(mod_badge nckh/vmware-zap-rag-pfsense)" "VM2 (.80.20) Web Target" "$C_SAPPHIRE" "$C_RESET"
+        printf '%s|%s %s14%s | %-28s | %s | %-24s %s|%s\n' "$C_SAPPHIRE" "$C_RESET" "$C_GOLD" "$C_RESET" "nckh/vmware (role: vm3-rag)" "$(mod_badge nckh/vmware-zap-rag-pfsense)" "VM3 (.80.30) AI-RAG+LLM" "$C_SAPPHIRE" "$C_RESET"
+        printf '%s|%s %s15%s | %-28s | %s | %-24s %s|%s\n' "$C_SAPPHIRE" "$C_RESET" "$C_GOLD" "$C_RESET" "nckh/vmware (role: eval)" "$(mod_badge nckh/vmware-zap-rag-pfsense)" "Cham diem F1 / NDCG@5" "$C_SAPPHIRE" "$C_RESET"
+        printf '%s+----+------------------------------+-------------+--------------------------+%s\n' "$C_SAPPHIRE" "$C_RESET"
     }
 
     case "$sub" in

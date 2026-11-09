@@ -1,12 +1,12 @@
 {
   "product": "THMD-Guru Linux",
   "codename": "Genesis",
-  "version": "1.1.0",
-  "tag": "v1.1.0-genesis",
+  "version": "1.1.1",
+  "tag": "v1.1.1-genesis",
   "channel": "stable-lts",
   "base_distro": "Debian GNU/Linux 12 (bookworm)",
   "kernel_branch": "Linux 6.1 LTS / SLTS (debian-bookworm-amd64)",
-  "released_at": "2026-11-09T09:46:49+07:00",
+  "released_at": "2026-11-09T20:21:20+07:00",
   "repository": "https://github.com/DangTran1709/thmd-guru-os-forge",
   "upstream_telemetry": {
     "debian_suite": "bookworm",
@@ -17,24 +17,38 @@
   "editions": {
     "desktop": {
       "iso_name": "thmd-guru-desktop-1.0-genesis-amd64.iso",
-      "size_bytes": 58451968,
-      "sha256": "3bf0d742816cffc09381ae79f641698e8c1424f9798e072cc2d51431c7730f52",
+      "size_bytes": 58468352,
+      "sha256": "3f33b90e494cd2c5292b3a3414bdc3c73fa660dd071505975222d38abdbac28b",
       "vm_role": "VM3 (192.168.80.30) - AI-RAG Server & Developer Workstation"
     },
     "server": {
       "iso_name": "thmd-guru-server-1.0-genesis-amd64.iso",
-      "size_bytes": 58460160,
-      "sha256": "f623cdd7d013ace598d5bf3c9703be0ab85ce0b6f31b11f83a03eba7d32de520",
+      "size_bytes": 58480640,
+      "sha256": "d46582c42d16b5ff7f2c39651f596e2153f661c9b8006ff6fbe253eee0c4fecb",
       "vm_role": "VM2 (192.168.80.20) - Web Server Target & Cloud Node"
     },
     "attt": {
       "iso_name": "thmd-guru-attt-1.0-genesis-amd64.iso",
-      "size_bytes": 58478592,
-      "sha256": "73fa1bdea3a6d59bce7fa8b4346bd29f835f75c5820f21763af48c08f8e27663",
+      "size_bytes": 58494976,
+      "sha256": "8afe53892bd0c97881c83a59630e18af42f79ed46a810f5e6e5f4315406c2ad5",
       "vm_role": "VM1 (192.168.80.10) - OWASP ZAP Scanner, Red/Blue Team & DFIR"
     }
   },
   "patch_history": [
+    {
+      "version": "1.1.1",
+      "tag": "v1.1.1-genesis",
+      "date": "2026-11-09",
+      "severity": "HIGH",
+      "title": "Nâng cấp Giao diện Đồ họa Cyber Sapphire & Royal Gold (Bootloader HD, Bảng điều khiển TUI guru-cockpit & Kho Modular Hub)",
+      "highlights": [
+        "[VMWARE LAB & NCKH] Release(v1.1.0-genesis): Kiến trúc Mô-đun Hóa (Lean Core OS + On-Demand Modular Hub cho Apps, Tools, LAB & NCKH) [THMD-Guru PatchWatch AI-Agent]",
+        "[KERNEL & BOOTLOADER] Release(v1.0.1-genesis): Bản vá Khởi động VMware Workstation (BIOS/UEFI), Trình cài đặt thmd-installer Mặc định & Tích hợp AI PatchWatch Agent [THMD-Guru PatchWatch AI-Agent]",
+        "[KERNEL & BOOTLOADER] Set Install & VMware Lab Wizard as default top menu item (#1) across BIOS and UEFI for all 3 ISOs",
+        "[KERNEL & BOOTLOADER] Fix VMware/UEFI/BIOS boot hang across all 3 editions (devtmpfs/udev, RRIP_1991A, thmd-installer wizard, VMnet2 static IP)",
+        "[VMWARE LAB & NCKH] Add complete A-to-Z VMware installation & NCKH lab configuration .docx manual with visual step-by-step diagrams"
+      ]
+    },
     {
       "version": "1.1.0",
       "tag": "v1.1.0-genesis",

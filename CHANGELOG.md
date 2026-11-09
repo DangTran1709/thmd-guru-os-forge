@@ -8,6 +8,29 @@
 
 ---
 
+## 🚀 Phiên bản [`v1.1.1-genesis`](https://github.com/DangTran1709/thmd-guru-os-forge/releases/tag/v1.1.1-genesis) — *Ngày phát hành: 09/11/2026*
+- **Mức độ quan trọng (Severity):** `HIGH` *(Bản cập nhật đã kiểm증 bởi THMD-Guru PatchWatch AI-Agent (Hybrid Rule + LLM Advisory Synthesizer))*
+- **Nhánh nhân (Kernel Branch):** `Linux 6.1 LTS / SLTS (Debian 12.15 Bookworm amd64)`
+- **Tóm tắt bản vá:** **Nâng cấp Giao diện Đồ họa Cyber Sapphire & Royal Gold (Bootloader HD, Bảng điều khiển TUI guru-cockpit & Kho Modular Hub)**
+
+### 🛠 Chi Tiết Các Hạng Mục Được Vá & Nâng Cấp Trong `v1.1.1-genesis`
+- [VMWARE LAB & NCKH] Release(v1.1.0-genesis): Kiến trúc Mô-đun Hóa (Lean Core OS + On-Demand Modular Hub cho Apps, Tools, LAB & NCKH) [THMD-Guru PatchWatch AI-Agent]
+- [KERNEL & BOOTLOADER] Release(v1.0.1-genesis): Bản vá Khởi động VMware Workstation (BIOS/UEFI), Trình cài đặt thmd-installer Mặc định & Tích hợp AI PatchWatch Agent [THMD-Guru PatchWatch AI-Agent]
+- [KERNEL & BOOTLOADER] Set Install & VMware Lab Wizard as default top menu item (#1) across BIOS and UEFI for all 3 ISOs
+- [KERNEL & BOOTLOADER] Fix VMware/UEFI/BIOS boot hang across all 3 editions (devtmpfs/udev, RRIP_1991A, thmd-installer wizard, VMnet2 static IP)
+- [VMWARE LAB & NCKH] Add complete A-to-Z VMware installation & NCKH lab configuration .docx manual with visual step-by-step diagrams
+
+
+### 🔐 Bảng Mã Băm Kiểm Tra Toàn Vẹn (`SHA-256`) — `v1.1.1-genesis`
+
+| Phiên bản | Tên tệp `.ISO` | Dung lượng | Mã Băm `SHA-256` |
+| :--- | :--- | :--- | :--- |
+| **ATTT (`VM1`)** | `thmd-guru-attt-1.0-genesis-amd64.iso` | `58,494,976 bytes` | `8afe53892bd0c97881c83a59630e18af42f79ed46a810f5e6e5f4315406c2ad5` |
+| **Server (`VM2`)** | `thmd-guru-server-1.0-genesis-amd64.iso` | `58,480,640 bytes` | `d46582c42d16b5ff7f2c39651f596e2153f661c9b8006ff6fbe253eee0c4fecb` |
+| **Desktop (`VM3`)** | `thmd-guru-desktop-1.0-genesis-amd64.iso` | `58,468,352 bytes` | `3f33b90e494cd2c5292b3a3414bdc3c73fa660dd071505975222d38abdbac28b` |
+
+---
+
 ## 🚀 Phiên bản [`v1.1.0-genesis`](https://github.com/DangTran1709/thmd-guru-os-forge/releases/tag/v1.1.0-genesis) — *Ngày phát hành: 09/11/2026*
 - **Mức độ quan trọng (Severity):** `HIGH` *(Bản cập nhật đã kiểm증 bởi THMD-Guru PatchWatch AI-Agent (Hybrid Rule + LLM Advisory Synthesizer))*
 - **Nhánh nhân (Kernel Branch):** `Linux 6.1 LTS / SLTS (Debian 12.15 Bookworm amd64)`
