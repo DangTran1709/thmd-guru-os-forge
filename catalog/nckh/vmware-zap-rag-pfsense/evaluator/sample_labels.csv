@@ -1,0 +1,22 @@
+alert_id,ground_truth_tp,expert_relevance,note
+ZAP-001,1,3,SQLi auth bypass returns admin JWT
+ZAP-002,0,0,Type parsing error without SQL driver trace
+ZAP-003,1,3,MariaDB syntax error with injected quote
+ZAP-004,1,2,Unescaped script reflected in text/html
+ZAP-005,0,0,Encoded reflection inside JSON with nosniff
+ZAP-006,1,3,/etc/passwd disclosed
+ZAP-007,0,0,SPA fallback page not real .git/config
+ZAP-008,1,2,Real package.json.bak content via null byte
+ZAP-009,1,3,Command output uid=33 in response
+ZAP-010,0,0,Search form does not change state
+ZAP-011,1,2,Password change form without anti-CSRF token
+ZAP-012,0,0,Numeric constant in JS bundle
+ZAP-013,0,0,Keyword match in Angular vendor bundle
+ZAP-014,0,0,Favicon does not need CSP
+ZAP-015,1,1,HTML page without CSP
+ZAP-016,0,0,Image does not need X-Frame-Options
+ZAP-017,0,0,Non-session preference cookie
+ZAP-018,1,1,Exact Apache and PHP versions disclosed
+ZAP-019,1,1,Stack trace with internal paths
+ZAP-020,0,0,HSTS not applicable to plain HTTP lab
+

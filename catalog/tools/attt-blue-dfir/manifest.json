@@ -1,0 +1,21 @@
+{
+  "id": "tools/attt-blue-dfir",
+  "slug": "tools-attt-blue-dfir",
+  "category": "tools",
+  "version": "1.1.0",
+  "name": "Bộ công cụ Phòng thủ SOC & Pháp y số (Blue Team & DFIR)",
+  "description": "Cài đặt theo yêu cầu: Auditd MITRE ATT&CK, Lynis, Rkhunter, YARA, Sleuthkit, Binwalk, Fail2ban.",
+  "packages": [
+    "auditd",
+    "lynis",
+    "rkhunter",
+    "yara",
+    "sleuthkit",
+    "binwalk",
+    "libimage-exiftool-perl",
+    "fail2ban"
+  ],
+  "roles": [
+    "default"
+  ]
+}

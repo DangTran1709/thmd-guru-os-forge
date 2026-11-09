@@ -1,0 +1,291 @@
+{
+  "schema_version": "1.0",
+  "catalog_version": "1.1.0",
+  "os_compatibility": "THMD-Guru Linux >= 1.0.0 (Debian 12 Bookworm Kernel 6.1 LTS)",
+  "repository": "https://github.com/DangTran1709/thmd-guru-os-forge",
+  "total_modules": 12,
+  "modules": [
+    {
+      "id": "tools/attt-web-scanner",
+      "slug": "tools-attt-web-scanner",
+      "category": "tools",
+      "version": "1.1.0",
+      "name": "Bộ công cụ Kiểm thử Web & OWASP ZAP (ATTT Web Scanner)",
+      "description": "Cài đặt theo yêu cầu: OWASP ZAP, SQLMap, Nikto, Gobuster, FFUF, curl, jq, Python requests.",
+      "packages": [
+        "zaproxy",
+        "sqlmap",
+        "nikto",
+        "gobuster",
+        "ffuf",
+        "curl",
+        "jq",
+        "python3-requests"
+      ],
+      "roles": [
+        "default",
+        "vm1-zap"
+      ],
+      "bundle_file": "tools-attt-web-scanner.tar.gz",
+      "size_bytes": 1030,
+      "sha256": "109c5a152512781de6cc64a61a1ccf15059dbf7c490d89ecf3f74aecb5072f18",
+      "download_url": "https://github.com/DangTran1709/thmd-guru-os-forge/releases/download/v1.1.0-genesis/tools-attt-web-scanner.tar.gz"
+    },
+    {
+      "id": "tools/attt-net-recon",
+      "slug": "tools-attt-net-recon",
+      "category": "tools",
+      "version": "1.1.0",
+      "name": "Bộ công cụ Chẩn đoán & Phân tích Mạng (Network Recon)",
+      "description": "Cài đặt theo yêu cầu: Nmap, Wireshark, Tshark, Tcpdump, MTR, Arp-scan, Iperf3.",
+      "packages": [
+        "nmap",
+        "wireshark",
+        "tshark",
+        "tcpdump",
+        "mtr-tiny",
+        "arp-scan",
+        "iperf3",
+        "netcat-openbsd"
+      ],
+      "roles": [
+        "default"
+      ],
+      "bundle_file": "tools-attt-net-recon.tar.gz",
+      "size_bytes": 1008,
+      "sha256": "6788c11316cd23995e0ec5ad7e067e58eca5dbc2b0f7f3c364a6fd503436ec2a",
+      "download_url": "https://github.com/DangTran1709/thmd-guru-os-forge/releases/download/v1.1.0-genesis/tools-attt-net-recon.tar.gz"
+    },
+    {
+      "id": "tools/attt-blue-dfir",
+      "slug": "tools-attt-blue-dfir",
+      "category": "tools",
+      "version": "1.1.0",
+      "name": "Bộ công cụ Phòng thủ SOC & Pháp y số (Blue Team & DFIR)",
+      "description": "Cài đặt theo yêu cầu: Auditd MITRE ATT&CK, Lynis, Rkhunter, YARA, Sleuthkit, Binwalk, Fail2ban.",
+      "packages": [
+        "auditd",
+        "lynis",
+        "rkhunter",
+        "yara",
+        "sleuthkit",
+        "binwalk",
+        "libimage-exiftool-perl",
+        "fail2ban"
+      ],
+      "roles": [
+        "default"
+      ],
+      "bundle_file": "tools-attt-blue-dfir.tar.gz",
+      "size_bytes": 1035,
+      "sha256": "133d74b202c893f20d95fe122a4cf1cbf50c245eb3c01041f97b3b8c0481d270",
+      "download_url": "https://github.com/DangTran1709/thmd-guru-os-forge/releases/download/v1.1.0-genesis/tools-attt-blue-dfir.tar.gz"
+    },
+    {
+      "id": "tools/attt-opsec-sandbox",
+      "slug": "tools-attt-opsec-sandbox",
+      "category": "tools",
+      "version": "1.1.0",
+      "name": "Bộ công cụ Cô lập Firejail & Ẩn danh Mạng (OPSEC & Sandbox)",
+      "description": "Cài đặt theo yêu cầu: Firejail Fail-Closed Sandbox, Stealth IPv6/mDNS Lockdown, Proxychains4.",
+      "packages": [
+        "firejail",
+        "proxychains4",
+        "macchanger",
+        "tor"
+      ],
+      "roles": [
+        "default"
+      ],
+      "bundle_file": "tools-attt-opsec-sandbox.tar.gz",
+      "size_bytes": 989,
+      "sha256": "dfd43202b0381174b27333382fcfdc109b21df3bb224f26738f50bce43a39124",
+      "download_url": "https://github.com/DangTran1709/thmd-guru-os-forge/releases/download/v1.1.0-genesis/tools-attt-opsec-sandbox.tar.gz"
+    },
+    {
+      "id": "tools/server-container",
+      "slug": "tools-server-container",
+      "category": "tools",
+      "version": "1.1.0",
+      "name": "Hạ tầng Container & Microservices (Docker CE / Podman)",
+      "description": "Cài đặt theo yêu cầu: Docker Engine, Docker Compose v2, Podman, Buildah & tối ưu Cgroups v2.",
+      "packages": [
+        "docker.io",
+        "docker-compose",
+        "podman",
+        "buildah",
+        "slirp4netns"
+      ],
+      "roles": [
+        "default",
+        "vm2-target"
+      ],
+      "bundle_file": "tools-server-container.tar.gz",
+      "size_bytes": 986,
+      "sha256": "50909b86635ea667136556dfddc4bb57829e457e4889d5aab0137f9f445dbd67",
+      "download_url": "https://github.com/DangTran1709/thmd-guru-os-forge/releases/download/v1.1.0-genesis/tools-server-container.tar.gz"
+    },
+    {
+      "id": "tools/server-web-waf",
+      "slug": "tools-server-web-waf",
+      "category": "tools",
+      "version": "1.1.0",
+      "name": "Máy chủ Web, Reverse Proxy & Tường lửa (Nginx / WAF / Cockpit)",
+      "description": "Cài đặt theo yêu cầu: Nginx, Apache2, ModSecurity CRS, nftables & Cockpit Web UI (:9090).",
+      "packages": [
+        "nginx",
+        "nftables",
+        "cockpit",
+        "certbot"
+      ],
+      "roles": [
+        "default",
+        "vm2-target"
+      ],
+      "bundle_file": "tools-server-web-waf.tar.gz",
+      "size_bytes": 994,
+      "sha256": "3dfef10d065510cc69fa9665da4d5b66cef9d4fec662c45a60eb506c7299b4c7",
+      "download_url": "https://github.com/DangTran1709/thmd-guru-os-forge/releases/download/v1.1.0-genesis/tools-server-web-waf.tar.gz"
+    },
+    {
+      "id": "tools/ai-rag-engine",
+      "slug": "tools-ai-rag-engine",
+      "category": "tools",
+      "version": "1.1.0",
+      "name": "Hạ tầng Trí tuệ Nhân tạo & Vector DB (FastAPI / FAISS / Ollama)",
+      "description": "Cài đặt theo yêu cầu: Python3 venv, FastAPI, Uvicorn, FAISS/Qdrant Vector DB, Sentence-Transformers, Ollama.",
+      "packages": [
+        "python3",
+        "python3-venv",
+        "python3-pip",
+        "python3-numpy",
+        "curl",
+        "jq"
+      ],
+      "roles": [
+        "default",
+        "vm3-airag"
+      ],
+      "bundle_file": "tools-ai-rag-engine.tar.gz",
+      "size_bytes": 1015,
+      "sha256": "2d4bbd6b0b3577d07ca0d5babf627e3ebfacfdfea1ce3b8e6aa8cd84e6630857",
+      "download_url": "https://github.com/DangTran1709/thmd-guru-os-forge/releases/download/v1.1.0-genesis/tools-ai-rag-engine.tar.gz"
+    },
+    {
+      "id": "tools/dev-workstation",
+      "slug": "tools-dev-workstation",
+      "category": "tools",
+      "version": "1.1.0",
+      "name": "Môi trường Lập trình Đa ngôn ngữ (Polyglot Dev Workstation)",
+      "description": "Cài đặt theo yêu cầu: Git, Build-Essential, Python uv, Node.js fnm, Rustup, Go, Tmux, Neovim.",
+      "packages": [
+        "git",
+        "build-essential",
+        "golang-go",
+        "tmux",
+        "neovim",
+        "curl",
+        "unzip"
+      ],
+      "roles": [
+        "default"
+      ],
+      "bundle_file": "tools-dev-workstation.tar.gz",
+      "size_bytes": 1019,
+      "sha256": "28d21185f159385d12d6cb944bef8b52fb9ec29060700e48e6c1289fc69fb3f5",
+      "download_url": "https://github.com/DangTran1709/thmd-guru-os-forge/releases/download/v1.1.0-genesis/tools-dev-workstation.tar.gz"
+    },
+    {
+      "id": "lab/netops-bgp-sdn",
+      "slug": "lab-netops-bgp-sdn",
+      "category": "lab",
+      "version": "1.1.0",
+      "name": "Phòng Lab Định tuyến Doanh nghiệp BGP/OSPF & SDN (FRRouting)",
+      "description": "Mô hình 2 Router FRR BGP/OSPF peering tự động trên Docker Compose.",
+      "packages": [
+        "docker.io",
+        "docker-compose",
+        "frr",
+        "tcpdump"
+      ],
+      "roles": [
+        "default"
+      ],
+      "legacy_lab_alias": "netops-bgp-sdn",
+      "bundle_file": "lab-netops-bgp-sdn.tar.gz",
+      "size_bytes": 1347,
+      "sha256": "0c09ad2ca345d145a0abd9235c6d0c925e5829990451450ac97607372f0f58a6",
+      "download_url": "https://github.com/DangTran1709/thmd-guru-os-forge/releases/download/v1.1.0-genesis/lab-netops-bgp-sdn.tar.gz"
+    },
+    {
+      "id": "lab/webapp-vuln-range",
+      "slug": "lab-webapp-vuln-range",
+      "category": "lab",
+      "version": "1.1.0",
+      "name": "Phòng Lab Ứng dụng Web Mục tiêu (DVWA, OWASP Juice Shop, WebGoat)",
+      "description": "Triển khai nhanh cụm Web App mục tiêu có lỗ hổng hợp pháp phục vụ đào tạo Pentest & SOC.",
+      "packages": [
+        "docker.io",
+        "docker-compose",
+        "nginx",
+        "curl"
+      ],
+      "roles": [
+        "default",
+        "vm2-target"
+      ],
+      "bundle_file": "lab-webapp-vuln-range.tar.gz",
+      "size_bytes": 3671,
+      "sha256": "50c6f8839197ceb0edeca89564ee3bf6318af6293a3d66ce6e51dabf525f5bcd",
+      "download_url": "https://github.com/DangTran1709/thmd-guru-os-forge/releases/download/v1.1.0-genesis/lab-webapp-vuln-range.tar.gz"
+    },
+    {
+      "id": "nckh/zap-rag-standalone",
+      "slug": "nckh-zap-rag-standalone",
+      "category": "nckh",
+      "version": "1.1.0",
+      "name": "Đề tài NCKH (Standalone): AI + Hybrid RAG Xác minh Cảnh báo OWASP ZAP",
+      "description": "Bộ dữ liệu chuẩn & kịch bản thực nghiệm 3 phương pháp (Raw ZAP vs Zero-Shot LLM vs Hybrid RAG) trên 1 máy.",
+      "packages": [
+        "python3",
+        "curl",
+        "jq"
+      ],
+      "roles": [
+        "default",
+        "standalone"
+      ],
+      "legacy_lab_alias": "nckh-zap-rag",
+      "bundle_file": "nckh-zap-rag-standalone.tar.gz",
+      "size_bytes": 8869,
+      "sha256": "14e0d2576e58e3ef2dbd4204efb2ccae4d8a2f0731ac4fed997b0fa6731f323a",
+      "download_url": "https://github.com/DangTran1709/thmd-guru-os-forge/releases/download/v1.1.0-genesis/nckh-zap-rag-standalone.tar.gz"
+    },
+    {
+      "id": "nckh/vmware-zap-rag-pfsense",
+      "slug": "nckh-vmware-zap-rag-pfsense",
+      "category": "nckh",
+      "version": "1.1.0",
+      "name": "Đề tài NCKH (VMware 3-VM + pfSense): Hệ thống Đánh giá AI-RAG & OWASP ZAP",
+      "description": "Hỗ trợ cài phân tách từng máy ảo (--role vm1-zap | vm2-target | vm3-airag | evaluator) trên mạng 192.168.80.0/24.",
+      "packages": [
+        "python3",
+        "curl",
+        "jq"
+      ],
+      "roles": [
+        "all",
+        "vm1-zap",
+        "vm2-target",
+        "vm3-airag",
+        "evaluator",
+        "pfsense"
+      ],
+      "legacy_lab_alias": "vmware-zap-rag-pfsense",
+      "bundle_file": "nckh-vmware-zap-rag-pfsense.tar.gz",
+      "size_bytes": 65271,
+      "sha256": "11dc2a873588aa343c4c8a0cdf54685783547c8674c2bc440deb9a106b8adf51",
+      "download_url": "https://github.com/DangTran1709/thmd-guru-os-forge/releases/download/v1.1.0-genesis/nckh-vmware-zap-rag-pfsense.tar.gz"
+    }
+  ]
+}

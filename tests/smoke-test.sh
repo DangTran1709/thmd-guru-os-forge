@@ -89,7 +89,19 @@ grep -q "lab80-vm1" <<< "${vm_out}"
 "${ROOT_DIR}/packages/guru-cli/src/THMD-guru-ai" gpu >/dev/null
 "${ROOT_DIR}/packages/guru-cli/src/THMD-guru-ai" dev-env >/dev/null
 "${ROOT_DIR}/packages/guru-cli/src/THMD-guru-ai" arsenal list >/dev/null
-echo "[PASS 3/7] THMD-guru-ai CLI positive functional tests (NCKH ZAP+RAG, VMware vm-node, AI, GPU, Arsenal) verified."
+hub_list_out="$("${ROOT_DIR}/packages/guru-cli/src/THMD-guru-ai" hub list)"
+grep -q "tools/attt-web-scanner" <<< "${hub_list_out}"
+grep -q "nckh/vmware" <<< "${hub_list_out}"
+tmp_hub_dir="$(mktemp -d)"
+GURU_HUB_ROOT="${tmp_hub_dir}/modules" GURU_HUB_DB="${tmp_hub_dir}/hub.db" \
+    "${ROOT_DIR}/packages/guru-cli/src/THMD-guru-ai" hub install nckh/vmware-zap-rag-pfsense --role vm1-zap >/dev/null
+hub_stat_out="$(GURU_HUB_ROOT="${tmp_hub_dir}/modules" GURU_HUB_DB="${tmp_hub_dir}/hub.db" \
+    "${ROOT_DIR}/packages/guru-cli/src/THMD-guru-ai" hub status)"
+grep -q "nckh/vmware-zap-rag-pfsense" <<< "${hub_stat_out}"
+GURU_HUB_ROOT="${tmp_hub_dir}/modules" GURU_HUB_DB="${tmp_hub_dir}/hub.db" \
+    "${ROOT_DIR}/packages/guru-cli/src/THMD-guru-ai" hub remove nckh/vmware-zap-rag-pfsense >/dev/null
+rm -rf "${tmp_hub_dir}"
+echo "[PASS 3/7] THMD-guru-ai CLI positive functional tests (Modular Hub, NCKH ZAP+RAG, VMware vm-node, AI, GPU, Arsenal) verified."
 
 # 4. Negative & Fail-Closed Security Tests (CWE-636 Mitigation)
 set +e

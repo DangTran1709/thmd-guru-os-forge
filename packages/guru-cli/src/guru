@@ -13,7 +13,7 @@
 set -eu
 (set -o pipefail 2>/dev/null) && set -o pipefail
 
-GURU_VERSION="1.0.1"
+GURU_VERSION="1.1.0"
 GURU_CODENAME="Genesis"
 GURU_PLUGIN_DIR="${GURU_PLUGIN_DIR:-/usr/lib/guru/commands}"
 GURU_UPDATE_HOOK_DIR="${GURU_UPDATE_HOOK_DIR:-/usr/lib/guru/update.d}"
@@ -169,6 +169,7 @@ ${C_BOLD}Built-in commands:${C_RESET}
   ${C_LGOLD}gpu${C_RESET}        AI Hardware Accelerator & VectorDB Kernel mmap check
   ${C_LGOLD}dev-env${C_RESET}    User-space polyglot manager (uv / fnm / mise / rustup)
   ${C_LGOLD}arsenal${C_RESET}     Cybersecurity Red/Blue/DFIR/OWASP tool inventory & sandbox runner
+  ${C_LGOLD}hub${C_RESET}         On-Demand Modular Hub (install/remove/list Tools, Apps, LAB & NCKH)
   ${C_LGOLD}patch-agent${C_RESET} Autonomous AI-Agent for patch tracking, versioning & GitHub Release
   ${C_LGOLD}update${C_RESET}      Update system packages via APT (--check | -y)
   ${C_LGOLD}plugins${C_RESET}    List installed edition plugin commands
@@ -644,6 +645,238 @@ cmd_arsenal() {
     esac
 }
 
+cmd_hub() {
+    sub="${1:-menu}"
+    [ $# -gt 0 ] && shift
+    hub_root="${GURU_HUB_ROOT:-/opt/thmd-guru/modules}"
+    hub_db="${GURU_HUB_DB:-/var/lib/thmd-guru/hub-installed.db}"
+    if [ ! -w "$(dirname "$hub_root" 2>/dev/null || echo /)" ] && [ "$(id -u 2>/dev/null || echo 1)" -ne 0 ]; then
+        hub_root="${HOME:-/tmp}/.local/share/thmd-guru/modules"
+        hub_db="${HOME:-/tmp}/.local/share/thmd-guru/hub-installed.db"
+    fi
+
+    map_num_to_id() {
+        case "$1" in
+            1)  echo "tools/attt-web-scanner|default" ;;
+            2)  echo "tools/attt-net-recon|default" ;;
+            3)  echo "tools/attt-blue-dfir|default" ;;
+            4)  echo "tools/attt-opsec-sandbox|default" ;;
+            5)  echo "tools/server-container|default" ;;
+            6)  echo "tools/server-web-waf|default" ;;
+            7)  echo "tools/ai-rag-engine|default" ;;
+            8)  echo "tools/dev-workstation|default" ;;
+            9)  echo "lab/netops-bgp-sdn|default" ;;
+            10) echo "lab/webapp-vuln-range|default" ;;
+            11) echo "nckh/zap-rag-standalone|standalone" ;;
+            12) echo "nckh/vmware-zap-rag-pfsense|vm1-zap" ;;
+            13) echo "nckh/vmware-zap-rag-pfsense|vm2-target" ;;
+            14) echo "nckh/vmware-zap-rag-pfsense|vm3-airag" ;;
+            15) echo "nckh/vmware-zap-rag-pfsense|evaluator" ;;
+            *)  echo "" ;;
+        esac
+    }
+
+    is_mod_installed() {
+        slug="$(echo "$1" | tr '/' '-')"
+        [ -d "$hub_root/$slug" ] && return 0
+        [ -f "$hub_db" ] && grep -q "^$1|" "$hub_db" 2>/dev/null && return 0
+        return 1
+    }
+
+    mod_badge() {
+        if is_mod_installed "$1"; then
+            printf '%s[INSTALLED]%s' "$C_GREEN" "$C_RESET"
+        else
+            printf '%s[ON-DEMAND]%s' "$C_DIM" "$C_RESET"
+        fi
+    }
+
+    hub_install_one() {
+        mod_id="$1"
+        role="${2:-default}"
+        case "$mod_id" in
+            [0-9]|[0-9][0-9])
+                mapped="$(map_num_to_id "$mod_id")"
+                [ -n "$mapped" ] || die "Invalid module number: $mod_id"
+                mod_id="${mapped%|*}"
+                [ "$role" = "default" ] && role="${mapped#*|}"
+                ;;
+        esac
+        slug="$(echo "$mod_id" | tr '/' '-')"
+        bundle_name="${slug}.tar.gz"
+        dest_dir="$hub_root/$slug"
+        mkdir -p "$dest_dir" "$(dirname "$hub_db")" 2>/dev/null || true
+
+        printf '%s[THMD-Guru Hub]%s Preparing on-demand installation for %s%s%s (role: %s)...\n' \
+            "$C_GOLD" "$C_RESET" "$C_BOLD" "$mod_id" "$C_RESET" "$role"
+
+        # 1. Check Offline ISO / CD-ROM cache (/cdrom/pool/modules or /mnt/cdrom/pool/modules) or local repo out/modules
+        src_tar=""
+        repo_root="$(cd "$(dirname "$0")/../../.." 2>/dev/null && pwd || echo "")"
+        if [ ! -d "/mnt/cdrom/pool/modules" ] && [ -b "/dev/sr0" ] && [ "$(id -u 2>/dev/null || echo 1)" -eq 0 ]; then
+            mkdir -p /mnt/cdrom 2>/dev/null || true
+            mount -r /dev/sr0 /mnt/cdrom 2>/dev/null || true
+        fi
+        for cand_tar in \
+            "/cdrom/pool/modules/$bundle_name" \
+            "/mnt/cdrom/pool/modules/$bundle_name" \
+            "/media/cdrom/pool/modules/$bundle_name" \
+            "$repo_root/out/modules/$bundle_name" \
+            "./out/modules/$bundle_name"; do
+            if [ -f "$cand_tar" ]; then
+                src_tar="$cand_tar"
+                break
+            fi
+        done
+
+        if [ -n "$src_tar" ]; then
+            ok "Found local/ISO module bundle: $src_tar (Offline Zero-Latency Install)"
+            tar -xzf "$src_tar" -C "$dest_dir"
+        elif [ -n "$repo_root" ] && [ -d "$repo_root/catalog/$mod_id" ]; then
+            ok "Found catalog source directory: $repo_root/catalog/$mod_id"
+            cp -r "$repo_root/catalog/$mod_id/"* "$dest_dir/" 2>/dev/null || true
+        else
+            dl_url="https://github.com/DangTran1709/thmd-guru-os-forge/releases/download/v1.1.0-genesis/$bundle_name"
+            printf '  -> Downloading from GitHub Modular Registry: %s\n' "$dl_url"
+            tmp_tar="/tmp/$bundle_name"
+            if command -v curl >/dev/null 2>&1 && curl -fsSL "$dl_url" -o "$tmp_tar"; then
+                tar -xzf "$tmp_tar" -C "$dest_dir"
+                rm -f "$tmp_tar"
+                ok "Downloaded and extracted $bundle_name from GitHub Releases"
+            elif command -v wget >/dev/null 2>&1 && wget -q "$dl_url" -O "$tmp_tar"; then
+                tar -xzf "$tmp_tar" -C "$dest_dir"
+                rm -f "$tmp_tar"
+                ok "Downloaded and extracted $bundle_name from GitHub Releases"
+            else
+                die "Cannot reach GitHub Releases and no offline bundle found for $mod_id"
+            fi
+        fi
+
+        # Link into /usr/share/thmd-guru/labs if it is a lab or nckh module
+        if [ -w "$GURU_LABS_DIR" ] || [ "$(id -u 2>/dev/null || echo 1)" -eq 0 ]; then
+            mkdir -p "$GURU_LABS_DIR" 2>/dev/null || true
+            case "$mod_id" in
+                nckh/zap-rag-standalone)
+                    ln -sfn "$dest_dir" "$GURU_LABS_DIR/nckh-zap-rag" 2>/dev/null || true ;;
+                nckh/vmware-zap-rag-pfsense)
+                    ln -sfn "$dest_dir" "$GURU_LABS_DIR/vmware-zap-rag-pfsense" 2>/dev/null || true ;;
+                lab/*)
+                    lab_short="${mod_id#lab/}"
+                    ln -sfn "$dest_dir" "$GURU_LABS_DIR/$lab_short" 2>/dev/null || true ;;
+            esac
+        fi
+
+        if [ -f "$dest_dir/install.sh" ]; then
+            sh "$dest_dir/install.sh" "$role"
+        fi
+
+        # Record in hub_db
+        if [ -f "$hub_db" ]; then
+            grep -v "^${mod_id}|" "$hub_db" > "${hub_db}.tmp" 2>/dev/null || true
+            mv "${hub_db}.tmp" "$hub_db" 2>/dev/null || true
+        fi
+        printf '%s|%s|%s|%s\n' "$mod_id" "$role" "$(date +%Y-%m-%dT%H:%M:%S 2>/dev/null || echo now)" "$dest_dir" >> "$hub_db" 2>/dev/null || true
+        ok "Module '$mod_id' (role: $role) is now active at $dest_dir"
+    }
+
+    hub_print_catalog() {
+        printf '%s%s================================================================================%s\n' "$C_SAPPHIRE" "$C_BOLD" "$C_RESET"
+        printf '  %s%sTHMD-GURU MODULAR HUB - KHO CAI DAT UNG DUNG, TOOLS, LAB & NCKH THEO YEU CAU%s\n' "$C_GOLD" "$C_BOLD" "$C_RESET"
+        printf '%s%s================================================================================%s\n' "$C_SAPPHIRE" "$C_BOLD" "$C_RESET"
+        printf '  OS Loi (Core OS)  : THMD-Guru Linux %s (%s) - Lean Modular Architecture\n' "$GURU_VERSION" "$GURU_CODENAME"
+        printf '  Thu muc Mo-dun    : %s\n' "$hub_root"
+        printf '%s--------------------------------------------------------------------------------%s\n' "$C_SAPPHIRE" "$C_RESET"
+        printf '  %s[NHOM 1: UNG DUNG & BO CONG CU CHUYEN NGANH (TOOLS / ARSENAL)]%s\n' "$C_LGOLD" "$C_RESET"
+        printf '   [1]  %-30s %s - OWASP ZAP, SQLMap, Nikto, Gobuster\n' "tools/attt-web-scanner" "$(mod_badge tools/attt-web-scanner)"
+        printf '   [2]  %-30s %s - Nmap, Wireshark, Tshark, Tcpdump\n' "tools/attt-net-recon" "$(mod_badge tools/attt-net-recon)"
+        printf '   [3]  %-30s %s - Auditd MITRE, Lynis, YARA, Sleuthkit\n' "tools/attt-blue-dfir" "$(mod_badge tools/attt-blue-dfir)"
+        printf '   [4]  %-30s %s - Firejail Sandbox, Stealth IPv6/mDNS\n' "tools/attt-opsec-sandbox" "$(mod_badge tools/attt-opsec-sandbox)"
+        printf '   [5]  %-30s %s - Docker CE, Compose v2, Podman\n' "tools/server-container" "$(mod_badge tools/server-container)"
+        printf '   [6]  %-30s %s - Nginx, WAF, nftables, Cockpit :9090\n' "tools/server-web-waf" "$(mod_badge tools/server-web-waf)"
+        printf '   [7]  %-30s %s - FastAPI, Vector DB (FAISS), Ollama\n' "tools/ai-rag-engine" "$(mod_badge tools/ai-rag-engine)"
+        printf '   [8]  %-30s %s - Python uv, Node fnm, Rust, Go, C++\n' "tools/dev-workstation" "$(mod_badge tools/dev-workstation)"
+        echo
+        printf '  %s[NHOM 2: PHONG THI NGHIEM THUC HANH (HANDS-ON LABS)]%s\n' "$C_LGOLD" "$C_RESET"
+        printf '   [9]  %-30s %s - Dinh tuyen Doanh nghiep BGP/OSPF FRR\n' "lab/netops-bgp-sdn" "$(mod_badge lab/netops-bgp-sdn)"
+        printf '   [10] %-30s %s - Cum Web muc tieu (DVWA, Juice Shop)\n' "lab/webapp-vuln-range" "$(mod_badge lab/webapp-vuln-range)"
+        echo
+        printf '  %s[NHOM 3: DE TAI NGHIEN CUU KHOA HOC (NCKH SUITES - CAI THEO TUNG VAI TRO VM)]%s\n' "$C_LGOLD" "$C_RESET"
+        printf '   [11] %-30s %s - NCKH Standalone (1 may): ZAP + Hybrid RAG\n' "nckh/zap-rag-standalone" "$(mod_badge nckh/zap-rag-standalone)"
+        printf '   [12] %-30s %s - [VM1 192.168.80.10] May quet OWASP ZAP\n' "nckh/vmware (--role vm1-zap)" "$(mod_badge nckh/vmware-zap-rag-pfsense)"
+        printf '   [13] %-30s %s - [VM2 192.168.80.20] Web Server Muc tieu\n' "nckh/vmware (--role vm2-target)" "$(mod_badge nckh/vmware-zap-rag-pfsense)"
+        printf '   [14] %-30s %s - [VM3 192.168.80.30] May chu AI-RAG + LLM\n' "nckh/vmware (--role vm3-airag)" "$(mod_badge nckh/vmware-zap-rag-pfsense)"
+        printf '   [15] %-30s %s - Bo cham diem NCKH (Precision/F1/NDCG@5)\n' "nckh/vmware (--role evaluator)" "$(mod_badge nckh/vmware-zap-rag-pfsense)"
+        printf '%s================================================================================%s\n' "$C_SAPPHIRE" "$C_RESET"
+    }
+
+    case "$sub" in
+        list|ls|catalog)
+            hub_print_catalog
+            ;;
+        status|installed)
+            printf '%s%sTHMD-Guru Modular Hub - Installed Modules Status%s\n' "$C_GOLD" "$C_BOLD" "$C_RESET"
+            printf '%s%s%s\n' "$C_SAPPHIRE" "------------------------------------------------------------" "$C_RESET"
+            if [ -f "$hub_db" ] && [ -s "$hub_db" ]; then
+                while IFS='|' read -r m_id m_role m_date m_path; do
+                    [ -n "$m_id" ] || continue
+                    printf '  %s[ACTIVE]%s %-32s | Role: %-12s | Path: %s\n' "$C_GREEN" "$C_RESET" "$m_id" "$m_role" "$m_path"
+                done < "$hub_db"
+            else
+                echo "  Core OS is running in pure CLEAN state (0 optional modules installed)."
+                echo "  Run 'THMD-guru-ai hub list' or 'THMD-guru-ai hub install <module>' to install on demand."
+            fi
+            ;;
+        install|add|pull)
+            target_mod="${1:-}"
+            [ -n "$target_mod" ] || die "Usage: THMD-guru-ai hub install <module-id-or-number> [--role <role>]"
+            shift
+            role_arg="default"
+            while [ $# -gt 0 ]; do
+                case "$1" in
+                    --role|-r) role_arg="${2:-default}"; [ $# -gt 1 ] && shift ;;
+                    --role=*)  role_arg="${1#*=}" ;;
+                esac
+                shift
+            done
+            hub_install_one "$target_mod" "$role_arg"
+            ;;
+        remove|rm|uninstall)
+            target_mod="${1:-}"
+            [ -n "$target_mod" ] || die "Usage: THMD-guru-ai hub remove <module-id-or-number>"
+            case "$target_mod" in
+                [0-9]|[0-9][0-9])
+                    mapped="$(map_num_to_id "$target_mod")"
+                    [ -n "$mapped" ] && target_mod="${mapped%|*}"
+                    ;;
+            esac
+            slug="$(echo "$target_mod" | tr '/' '-')"
+            rm -rf "$hub_root/$slug" 2>/dev/null || true
+            if [ -f "$hub_db" ]; then
+                grep -v "^${target_mod}|" "$hub_db" > "${hub_db}.tmp" 2>/dev/null || true
+                mv "${hub_db}.tmp" "$hub_db" 2>/dev/null || true
+            fi
+            ok "Removed module '$target_mod' and freed disk space. Core OS remains clean."
+            ;;
+        menu|tui)
+            hub_print_catalog
+            if [ ! -t 0 ]; then
+                return 0
+            fi
+            printf '\nNhap so thu tu [1..15] de cai dat, [S] Xem da cai, [Q] Thoat: '
+            read -r choice || return 0
+            case "$choice" in
+                [1-9]|1[0-5]) hub_install_one "$choice" "default" ;;
+                s|S)          cmd_hub status ;;
+                q|Q|"")       return 0 ;;
+                *)            warn "Lua chon khong hop le: $choice" ;;
+            esac
+            ;;
+        *)
+            echo "Usage: THMD-guru-ai hub [menu | list | status | install <module> [--role <role>] | remove <module>]"
+            ;;
+    esac
+}
+
 cmd_patch_agent() {
     agent_py=""
     for cand in \
@@ -697,6 +930,7 @@ main() {
         gpu)                  cmd_gpu "$@" ;;
         dev-env)              cmd_dev_env "$@" ;;
         arsenal)              cmd_arsenal "$@" ;;
+        hub|store|pkg|module) cmd_hub "$@" ;;
         patch-agent|patchwatch|patch) cmd_patch_agent "$@" ;;
         update)               cmd_update "$@" ;;
         plugins)              cmd_plugins ;;

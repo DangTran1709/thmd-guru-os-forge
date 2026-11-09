@@ -274,21 +274,20 @@ def build_thmd_cpio_overlay_gz(root_dir: Path, edition: str) -> bytes:
             executable=True,
         )
 
-    # Lab definitions (recursively include all subdirectories and scripts, e.g. vmware-zap-rag-pfsense/*)
-    labs_root = root_dir / "packages/guru-cli/labs"
-    if labs_root.exists():
-        for item in sorted(labs_root.rglob("*")):
-            rel_lab = item.relative_to(labs_root).as_posix()
-            dest_path = f"usr/share/thmd-guru/labs/{rel_lab}"
-            if item.is_dir():
-                add_dir(dest_path)
-            elif item.is_file():
-                is_exec = item.suffix in (".sh", ".py")
-                add_file(
-                    dest_path,
-                    item.read_bytes().replace(b"\r\n", b"\n"),
-                    executable=is_exec,
-                )
+    # Modular Architecture (v1.1.0+): Core OS initramfs stays pure & lean.
+    # Apps, Tools, Hands-on LABs, and NCKH suites are NOT pre-installed in RAM;
+    # they are installed on-demand via `THMD-guru-ai hub install <module>`.
+    add_dir("opt")
+    add_dir("opt/thmd-guru")
+    add_dir("opt/thmd-guru/modules")
+    add_dir("usr/share/thmd-guru/patch-agent")
+    patch_agent_src = root_dir / "builder/patch_agent.py"
+    if patch_agent_src.exists():
+        add_file(
+            "usr/share/thmd-guru/patch-agent/patch_agent.py",
+            patch_agent_src.read_bytes().replace(b"\r\n", b"\n"),
+            executable=True,
+        )
 
     # Debian Installer finish-install hook to automatically convert target disk into THMD-Guru Linux
     finish_hook = b"""#!/bin/sh
@@ -340,43 +339,50 @@ persist_to_disk() {{
 while true; do
     echo ""
     echo "========================================================================"
-    echo "  THMD-GURU LINUX 1.0 (GENESIS) [{edition.upper()}] - INSTALLER & LAB WIZARD"
-    echo "  THMD-Guru Global Tech Academy | Learn Deep. Build Real. Secure Everything."
+    echo "  THMD-GURU LINUX 1.1 (GENESIS) [{edition.upper()}] - CORE OS & MODULAR HUB"
+    echo "  Architecture: Lean Core OS (Apps, Tools, LAB & NCKH Installed On-Demand)"
     echo "========================================================================"
-    echo "  [1] Configure VM1 (ATTT + OWASP ZAP)   -> IP 192.168.80.10/24 (VMnet2)"
-    echo "  [2] Configure VM2 (Web Target Server)  -> IP 192.168.80.20/24 (VMnet2)"
-    echo "  [3] Configure VM3 (AI-RAG Server)      -> IP 192.168.80.30/24 (VMnet2)"
-    echo "  [4] Install / Apply THMD-Guru OS Overlay & Hardening to System"
-    echo "  [5] Run NCKH Benchmark (vmware-zap-rag-pfsense: ZAP vs LLM vs AI+RAG)"
-    echo "  [0] Exit to THMD-guru-ai Root Shell (root@guru-{edition})"
+    echo "  [1] Install Clean Core OS Only (Pure Base System - No Apps/LABs/NCKH)"
+    echo "  [2] Open Modular Hub Store (Select & Install Tools, Apps, LABs, NCKH)"
+    echo "  [3] Provision VM1 (IP 192.168.80.10 + On-Demand Install vm1-zap)"
+    echo "  [4] Provision VM2 (IP 192.168.80.20 + On-Demand Install vm2-target)"
+    echo "  [5] Provision VM3 (IP 192.168.80.30 + On-Demand Install vm3-airag)"
+    echo "  [0] Exit to Clean Core OS Shell (root@guru-{edition})"
     echo "------------------------------------------------------------------------"
-    printf "Select option [0-5] (or press ENTER for [0] Root Shell): "
+    printf "Select option [0-5] (or press ENTER for [0] Core OS Shell): "
     read -r ans || break
     case "${{ans:-0}}" in
         1)
             persist_to_disk
-            /bin/sh /usr/bin/THMD-guru-ai vm-node init lab80-vm1
-            /bin/sh /usr/bin/THMD-guru-ai status
+            /bin/sh /usr/bin/THMD-guru-ai hub status
             break
             ;;
         2)
-            persist_to_disk
-            /bin/sh /usr/bin/THMD-guru-ai vm-node init lab80-vm2
-            /bin/sh /usr/bin/THMD-guru-ai status
-            break
+            /bin/sh /usr/bin/THMD-guru-ai hub menu
             ;;
         3)
             persist_to_disk
-            /bin/sh /usr/bin/THMD-guru-ai vm-node init lab80-vm3
+            /bin/sh /usr/bin/THMD-guru-ai vm-node init lab80-vm1
+            /bin/sh /usr/bin/THMD-guru-ai hub install nckh/vmware-zap-rag-pfsense --role vm1-zap
+            /bin/sh /usr/bin/THMD-guru-ai hub install tools/attt-web-scanner --role vm1-zap
             /bin/sh /usr/bin/THMD-guru-ai status
             break
             ;;
         4)
             persist_to_disk
+            /bin/sh /usr/bin/THMD-guru-ai vm-node init lab80-vm2
+            /bin/sh /usr/bin/THMD-guru-ai hub install nckh/vmware-zap-rag-pfsense --role vm2-target
+            /bin/sh /usr/bin/THMD-guru-ai hub install tools/server-container --role vm2-target
+            /bin/sh /usr/bin/THMD-guru-ai status
             break
             ;;
         5)
-            /bin/sh /usr/bin/THMD-guru-ai lab run vmware-zap-rag-pfsense
+            persist_to_disk
+            /bin/sh /usr/bin/THMD-guru-ai vm-node init lab80-vm3
+            /bin/sh /usr/bin/THMD-guru-ai hub install nckh/vmware-zap-rag-pfsense --role vm3-airag
+            /bin/sh /usr/bin/THMD-guru-ai hub install tools/ai-rag-engine --role vm3-airag
+            /bin/sh /usr/bin/THMD-guru-ai status
+            break
             ;;
         0|"")
             break
@@ -1115,6 +1121,14 @@ def stage_and_build_edition(
             if src_deb.exists():
                 shutil.copy2(src_deb, work_iso / "pool/main" / deb_name)
         shutil.copytree(root_dir / "out/apt-repo/dists", work_iso / "dists", dirs_exist_ok=True)
+
+    # 3b. Copy On-Demand Modular Bundles into /pool/modules/ on the ISO-9660 disc
+    # (Not loaded into RAM at boot; enables zero-latency offline installation on isolated VMnet2)
+    if (root_dir / "out/modules").exists():
+        (work_iso / "pool/modules").mkdir(parents=True, exist_ok=True)
+        for mod_bundle in sorted((root_dir / "out/modules").iterdir()):
+            if mod_bundle.is_file():
+                shutil.copy2(mod_bundle, work_iso / "pool/modules" / mod_bundle.name)
 
     # 4. Copy Edition Overlay, Hooks, Package Lists & Secure Boot MOK Keys
     payload = work_iso / "thmd-guru"

@@ -1,0 +1,22 @@
+{
+  "id": "tools/attt-web-scanner",
+  "slug": "tools-attt-web-scanner",
+  "category": "tools",
+  "version": "1.1.0",
+  "name": "Bộ công cụ Kiểm thử Web & OWASP ZAP (ATTT Web Scanner)",
+  "description": "Cài đặt theo yêu cầu: OWASP ZAP, SQLMap, Nikto, Gobuster, FFUF, curl, jq, Python requests.",
+  "packages": [
+    "zaproxy",
+    "sqlmap",
+    "nikto",
+    "gobuster",
+    "ffuf",
+    "curl",
+    "jq",
+    "python3-requests"
+  ],
+  "roles": [
+    "default",
+    "vm1-zap"
+  ]
+}

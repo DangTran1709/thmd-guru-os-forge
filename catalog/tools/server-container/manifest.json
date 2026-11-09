@@ -1,0 +1,19 @@
+{
+  "id": "tools/server-container",
+  "slug": "tools-server-container",
+  "category": "tools",
+  "version": "1.1.0",
+  "name": "Hạ tầng Container & Microservices (Docker CE / Podman)",
+  "description": "Cài đặt theo yêu cầu: Docker Engine, Docker Compose v2, Podman, Buildah & tối ưu Cgroups v2.",
+  "packages": [
+    "docker.io",
+    "docker-compose",
+    "podman",
+    "buildah",
+    "slirp4netns"
+  ],
+  "roles": [
+    "default",
+    "vm2-target"
+  ]
+}

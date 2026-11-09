@@ -1,0 +1,18 @@
+{
+  "id": "lab/webapp-vuln-range",
+  "slug": "lab-webapp-vuln-range",
+  "category": "lab",
+  "version": "1.1.0",
+  "name": "Phòng Lab Ứng dụng Web Mục tiêu (DVWA, OWASP Juice Shop, WebGoat)",
+  "description": "Triển khai nhanh cụm Web App mục tiêu có lỗ hổng hợp pháp phục vụ đào tạo Pentest & SOC.",
+  "packages": [
+    "docker.io",
+    "docker-compose",
+    "nginx",
+    "curl"
+  ],
+  "roles": [
+    "default",
+    "vm2-target"
+  ]
+}

@@ -95,25 +95,16 @@ def main():
     bin_dir.mkdir(parents=True, exist_ok=True)
 
     guru_bytes = (root / "packages/guru-cli/src/guru").read_bytes().replace(b"\r\n", b"\n")
+    patch_agent_bytes = (root / "builder/patch_agent.py").read_bytes().replace(b"\r\n", b"\n")
     guru_files: dict[str, tuple[bytes, int]] = {
         "usr/bin/guru": (guru_bytes, 0o755),
         "usr/bin/THMD-guru-ai": (guru_bytes, 0o755),
+        "usr/share/thmd-guru/patch-agent/patch_agent.py": (patch_agent_bytes, 0o755),
         "usr/share/bash-completion/completions/guru": (
             (root / "packages/guru-cli/completion/guru").read_bytes().replace(b"\r\n", b"\n"),
             0o644,
         ),
     }
-    for lab_dir in sorted((root / "packages/guru-cli/labs").iterdir()):
-        if lab_dir.is_dir():
-            # rglob: labs may contain nested per-VM folders (e.g. vmware-zap-rag-pfsense/vm1-kali-zap/)
-            for lf in sorted(lab_dir.rglob("*")):
-                if lf.is_file() and "__pycache__" not in lf.parts:
-                    mode = 0o755 if lf.suffix in (".py", ".sh") else 0o644
-                    rel = lf.relative_to(lab_dir).as_posix()
-                    guru_files[f"usr/share/thmd-guru/labs/{lab_dir.name}/{rel}"] = (
-                        lf.read_bytes().replace(b"\r\n", b"\n"),
-                        mode,
-                    )
 
     pkgs_spec = [
         (

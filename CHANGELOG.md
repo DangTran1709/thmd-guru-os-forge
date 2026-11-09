@@ -8,6 +8,28 @@
 
 ---
 
+## 🚀 Phiên bản [`v1.1.0-genesis`](https://github.com/DangTran1709/thmd-guru-os-forge/releases/tag/v1.1.0-genesis) — *Ngày phát hành: 09/11/2026*
+- **Mức độ quan trọng (Severity):** `HIGH` *(Bản cập nhật đã kiểm증 bởi THMD-Guru PatchWatch AI-Agent (Hybrid Rule + LLM Advisory Synthesizer))*
+- **Nhánh nhân (Kernel Branch):** `Linux 6.1 LTS / SLTS (Debian 12.15 Bookworm amd64)`
+- **Tóm tắt bản vá:** **Kiến trúc Mô-đun Hóa (Lean Core OS + On-Demand Modular Hub cho Apps, Tools, LAB & NCKH)**
+
+### 🛠 Chi Tiết Các Hạng Mục Được Vá & Nâng Cấp Trong `v1.1.0-genesis`
+- [KIẾN TRÚC LEAN CORE OS] Tách biệt hoàn toàn Hệ điều hành Lõi (initrd.gz thuần khiết) khỏi các ứng dụng, bộ công cụ (Tools), Phòng thí nghiệm (LAB) và Đề tài NCKH.
+- [MODULAR HUB CLI & TUI] Ra mắt trung tâm cài đặt mô-đun theo yêu cầu 'THMD-guru-ai hub' (list | install | remove | status | menu) hỗ trợ 12 gói độc lập.
+- [DUAL-SOURCE ON-DEMAND] Hỗ trợ cài đặt mô-đun tức thì cả khi Online (tải từ GitHub Releases) lẫn khi Offline trên mạng cô lập VMnet2 (tự động giải nén từ /pool/modules/*.tar.gz trên đĩa ISO mà không tốn RAM khi khởi động).
+- [PHÂN TÁCH VAI TRÒ NCKH] Hỗ trợ cờ --role (vm1-zap, vm2-target, vm3-airag, evaluator) để mỗi máy ảo chỉ cài đặt đúng thành phần của máy đó.
+
+
+### 🔐 Bảng Mã Băm Kiểm Tra Toàn Vẹn (`SHA-256`) — `v1.1.0-genesis`
+
+| Phiên bản | Tên tệp `.ISO` | Dung lượng | Mã Băm `SHA-256` |
+| :--- | :--- | :--- | :--- |
+| **ATTT (`VM1`)** | `thmd-guru-attt-1.0-genesis-amd64.iso` | `58,478,592 bytes` | `73fa1bdea3a6d59bce7fa8b4346bd29f835f75c5820f21763af48c08f8e27663` |
+| **Server (`VM2`)** | `thmd-guru-server-1.0-genesis-amd64.iso` | `58,460,160 bytes` | `f623cdd7d013ace598d5bf3c9703be0ab85ce0b6f31b11f83a03eba7d32de520` |
+| **Desktop (`VM3`)** | `thmd-guru-desktop-1.0-genesis-amd64.iso` | `58,451,968 bytes` | `3bf0d742816cffc09381ae79f641698e8c1424f9798e072cc2d51431c7730f52` |
+
+---
+
 ## 🚀 Phiên bản [`v1.0.1-genesis`](https://github.com/DangTran1709/thmd-guru-os-forge/releases/tag/v1.0.1-genesis) — *Ngày phát hành: 07/11/2026*
 - **Mức độ quan trọng (Severity):** `HIGH` *(Bản cập nhật đã kiểm증 bởi THMD-Guru PatchWatch AI-Agent (Hybrid Rule + LLM Advisory Synthesizer))*
 - **Nhánh nhân (Kernel Branch):** `Linux 6.1 LTS / SLTS (Debian 12.15 Bookworm amd64)`

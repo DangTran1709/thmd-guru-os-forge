@@ -1,0 +1,18 @@
+{
+  "id": "nckh/zap-rag-standalone",
+  "slug": "nckh-zap-rag-standalone",
+  "category": "nckh",
+  "version": "1.1.0",
+  "name": "Đề tài NCKH (Standalone): AI + Hybrid RAG Xác minh Cảnh báo OWASP ZAP",
+  "description": "Bộ dữ liệu chuẩn & kịch bản thực nghiệm 3 phương pháp (Raw ZAP vs Zero-Shot LLM vs Hybrid RAG) trên 1 máy.",
+  "packages": [
+    "python3",
+    "curl",
+    "jq"
+  ],
+  "roles": [
+    "default",
+    "standalone"
+  ],
+  "legacy_lab_alias": "nckh-zap-rag"
+}

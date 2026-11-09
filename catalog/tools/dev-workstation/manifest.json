@@ -1,0 +1,20 @@
+{
+  "id": "tools/dev-workstation",
+  "slug": "tools-dev-workstation",
+  "category": "tools",
+  "version": "1.1.0",
+  "name": "Môi trường Lập trình Đa ngôn ngữ (Polyglot Dev Workstation)",
+  "description": "Cài đặt theo yêu cầu: Git, Build-Essential, Python uv, Node.js fnm, Rustup, Go, Tmux, Neovim.",
+  "packages": [
+    "git",
+    "build-essential",
+    "golang-go",
+    "tmux",
+    "neovim",
+    "curl",
+    "unzip"
+  ],
+  "roles": [
+    "default"
+  ]
+}

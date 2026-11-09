@@ -1,0 +1,18 @@
+{
+  "id": "lab/netops-bgp-sdn",
+  "slug": "lab-netops-bgp-sdn",
+  "category": "lab",
+  "version": "1.1.0",
+  "name": "Phòng Lab Định tuyến Doanh nghiệp BGP/OSPF & SDN (FRRouting)",
+  "description": "Mô hình 2 Router FRR BGP/OSPF peering tự động trên Docker Compose.",
+  "packages": [
+    "docker.io",
+    "docker-compose",
+    "frr",
+    "tcpdump"
+  ],
+  "roles": [
+    "default"
+  ],
+  "legacy_lab_alias": "netops-bgp-sdn"
+}

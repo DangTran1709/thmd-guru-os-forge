@@ -475,17 +475,22 @@ def publish_to_github_releases(tag: str, version: str, title: str, release_body:
     existing_assets = {a["name"]: a["id"] for a in rel.get("assets", [])}
 
     asset_files = [
-        "thmd-guru-desktop-1.0-genesis-amd64.iso",
-        "thmd-guru-desktop-1.0-genesis-amd64.iso.sha256",
-        "thmd-guru-server-1.0-genesis-amd64.iso",
-        "thmd-guru-server-1.0-genesis-amd64.iso.sha256",
-        "thmd-guru-attt-1.0-genesis-amd64.iso",
-        "thmd-guru-attt-1.0-genesis-amd64.iso.sha256",
+        (OUT_DIR / "thmd-guru-desktop-1.0-genesis-amd64.iso"),
+        (OUT_DIR / "thmd-guru-desktop-1.0-genesis-amd64.iso.sha256"),
+        (OUT_DIR / "thmd-guru-server-1.0-genesis-amd64.iso"),
+        (OUT_DIR / "thmd-guru-server-1.0-genesis-amd64.iso.sha256"),
+        (OUT_DIR / "thmd-guru-attt-1.0-genesis-amd64.iso"),
+        (OUT_DIR / "thmd-guru-attt-1.0-genesis-amd64.iso.sha256"),
+        (OUT_DIR / "modules" / "catalog-index.json"),
+        (OUT_DIR / "modules" / "nckh-vmware-zap-rag-pfsense.tar.gz"),
+        (OUT_DIR / "modules" / "nckh-zap-rag-standalone.tar.gz"),
+        (OUT_DIR / "modules" / "lab-netops-bgp-sdn.tar.gz"),
+        (OUT_DIR / "modules" / "lab-webapp-vuln-range.tar.gz"),
     ]
-    for fname in asset_files:
-        fpath = OUT_DIR / fname
+    for fpath in asset_files:
         if not fpath.exists():
             continue
+        fname = fpath.name
         if fname in existing_assets:
             aid = existing_assets[fname]
             dreq = urllib.request.Request(
@@ -496,7 +501,11 @@ def publish_to_github_releases(tag: str, version: str, title: str, release_body:
             with urllib.request.urlopen(dreq):
                 pass
         data = fpath.read_bytes()
-        ctype = "application/octet-stream" if fname.endswith(".iso") else "text/plain"
+        ctype = (
+            "application/octet-stream"
+            if fname.endswith((".iso", ".gz"))
+            else ("application/json" if fname.endswith(".json") else "text/plain")
+        )
         u_url = f"{upload_base}?name={urllib.parse.quote(fname)}"
         print(f"[AI Patch-Agent] Uploading {fname} ({len(data):,} bytes) to {tag}...", flush=True)
         ureq = urllib.request.Request(
@@ -637,7 +646,8 @@ def cmd_release(args: argparse.Namespace) -> int:
     )
 
     if args.rebuild_iso:
-        print("[AI Patch-Agent] Rebuilding .deb packages & 3 Bootable Hybrid ISOs...", flush=True)
+        print("[AI Patch-Agent] Building modular catalog bundles, .deb packages & 3 Lean Core ISOs...", flush=True)
+        subprocess.run([sys.executable, str(ROOT_DIR / "builder/build-catalog-bundles.py")], check=True)
         subprocess.run([sys.executable, str(ROOT_DIR / "builder/build-debs-portable.py")], check=True)
         subprocess.run([sys.executable, str(ROOT_DIR / "builder/build-iso-portable.py"), "--edition", "all"], check=True)
 
@@ -794,3 +804,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
+

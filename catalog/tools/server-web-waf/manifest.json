@@ -1,0 +1,18 @@
+{
+  "id": "tools/server-web-waf",
+  "slug": "tools-server-web-waf",
+  "category": "tools",
+  "version": "1.1.0",
+  "name": "Máy chủ Web, Reverse Proxy & Tường lửa (Nginx / WAF / Cockpit)",
+  "description": "Cài đặt theo yêu cầu: Nginx, Apache2, ModSecurity CRS, nftables & Cockpit Web UI (:9090).",
+  "packages": [
+    "nginx",
+    "nftables",
+    "cockpit",
+    "certbot"
+  ],
+  "roles": [
+    "default",
+    "vm2-target"
+  ]
+}

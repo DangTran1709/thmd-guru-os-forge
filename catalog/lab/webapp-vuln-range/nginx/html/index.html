@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>THMD-Guru LAB — Web Target (VM2 192.168.80.20)</title>
+<style>
+  body{margin:0;font-family:"Segoe UI",system-ui,sans-serif;background:#0A0F1E;color:#E6ECF7}
+  header{background:#0B3D91;padding:20px 32px;border-bottom:3px solid #D4AF37}
+  h1{margin:0;color:#F5D77A;font-size:22px}
+  main{padding:24px 32px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+  a.card{display:block;background:#112244;border:1px solid #234178;border-radius:10px;padding:16px;color:#E6ECF7;text-decoration:none}
+  a.card:hover{border-color:#D4AF37}
+  b{color:#60A5FA}
+  footer{padding:0 32px 24px;color:#9AA7BD;font-size:13px}
+</style>
+</head>
+<body>
+<header><h1>THMD-Guru LAB — VM2 Web Server mục tiêu (192.168.80.20)</h1></header>
+<main>
+  <a class="card" href="http://192.168.80.20:3000/"><b>OWASP Juice Shop</b><br>:3000 — SPA Node.js/Angular, OWASP Top 10</a>
+  <a class="card" href="http://192.168.80.20:8081/"><b>DVWA</b><br>:8081 (hoặc /dvwa/) — PHP + MariaDB, admin / password</a>
+  <a class="card" href="http://192.168.80.20:8080/WebGoat"><b>WebGoat</b><br>:8080/WebGoat — Java Spring, bài học OWASP</a>
+</main>
+<footer>Phạm vi an toàn: chỉ quét trong môi trường LAB được cấp phép trên VMware. Mọi truy cập được ghi vào /var/log/nginx/lab_access.log.</footer>
+</body>
+</html>
+

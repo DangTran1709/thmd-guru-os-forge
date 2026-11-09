@@ -1,0 +1,22 @@
+{
+  "id": "nckh/vmware-zap-rag-pfsense",
+  "slug": "nckh-vmware-zap-rag-pfsense",
+  "category": "nckh",
+  "version": "1.1.0",
+  "name": "Đề tài NCKH (VMware 3-VM + pfSense): Hệ thống Đánh giá AI-RAG & OWASP ZAP",
+  "description": "Hỗ trợ cài phân tách từng máy ảo (--role vm1-zap | vm2-target | vm3-airag | evaluator) trên mạng 192.168.80.0/24.",
+  "packages": [
+    "python3",
+    "curl",
+    "jq"
+  ],
+  "roles": [
+    "all",
+    "vm1-zap",
+    "vm2-target",
+    "vm3-airag",
+    "evaluator",
+    "pfsense"
+  ],
+  "legacy_lab_alias": "vmware-zap-rag-pfsense"
+}

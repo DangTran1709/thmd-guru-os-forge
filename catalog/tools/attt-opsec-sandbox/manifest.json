@@ -1,0 +1,17 @@
+{
+  "id": "tools/attt-opsec-sandbox",
+  "slug": "tools-attt-opsec-sandbox",
+  "category": "tools",
+  "version": "1.1.0",
+  "name": "Bộ công cụ Cô lập Firejail & Ẩn danh Mạng (OPSEC & Sandbox)",
+  "description": "Cài đặt theo yêu cầu: Firejail Fail-Closed Sandbox, Stealth IPv6/mDNS Lockdown, Proxychains4.",
+  "packages": [
+    "firejail",
+    "proxychains4",
+    "macchanger",
+    "tor"
+  ],
+  "roles": [
+    "default"
+  ]
+}
